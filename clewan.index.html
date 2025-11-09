@@ -1,0 +1,2475 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم حياتي | v10.1 (إصلاح)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2979ff;
+            --primary-light: #e3f2fd;
+            --secondary-color: #00e676;
+            --background-color: #f4f7fa;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --text-light: #757575;
+            --radius: 16px;
+            --danger-color: #ff3d00;
+            --warning-color: #ffab00;
+            --priority-high: #ff3d00;
+            --priority-medium: #ffab00;
+            --priority-low: #2979ff;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Tajawal', 'Arial', sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 15px;
+            color: var(--text-color);
+            direction: rtl;
+            text-align: right;
+        }
+        .dashboard-container { max-width: 1000px; margin: 0 auto; }
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), #5393ff);
+            color: white; padding: 25px; border-radius: var(--radius);
+            margin-bottom: 20px; text-align: center;
+            box-shadow: 0 6px 20px rgba(41, 121, 255, 0.3);
+        }
+        .header h1 { margin: 0; font-size: 1.8em; }
+        
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        .tab-link {
+            padding: 12px 10px;
+            border-radius: var(--radius);
+            text-decoration: none;
+            color: var(--text-color);
+            background-color: var(--card-bg);
+            transition: all 0.3s;
+            font-weight: 700;
+            font-size: 0.9em;
+            cursor: pointer; border: none;
+            font-family: 'Tajawal', 'Arial', sans-serif;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .tab-link:hover, .tab-link[aria-selected="true"] {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(41, 121, 255, 0.4);
+        }
+        .tab-link .icon { font-size: 1.5em; }
+        
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; text-align: center; }
+        
+        h2 {
+            font-size: 1.6em;
+            color: var(--text-color);
+            margin-bottom: 20px;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+        h3 { color: var(--text-color); margin-top: 0; font-size: 1.3em; }
+        h4.task-name { font-size: 1.1em; }
+        
+        input[type="text"], input[type="number"], input[type="date"], select {
+            width: 100%; padding: 16px; margin-bottom: 12px;
+            border: 2px solid #e0e0e0; border-radius: 12px;
+            font-size: 1em; direction: rtl;
+            background-color: #f9f9f9;
+            font-family: 'Tajawal', 'Arial', sans-serif;
+            transition: all 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: white;
+            box-shadow: 0 0 10px rgba(41, 121, 255, 0.2);
+        }
+        input[type="checkbox"] {
+            width: 20px; height: 20px;
+            accent-color: var(--primary-color);
+        }
+        
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; }
+        
+        .progress-bar { height: 12px; background-color: #e9ecef; border-radius: 6px; margin-top: 10px; overflow: hidden; }
+        .progress-bar div { height: 100%; background: linear-gradient(90deg, var(--secondary-color), var(--primary-color)); transition: width 0.5s ease; }
+        
+        .habit-card { padding: 20px; min-height: 160px; text-align: center; }
+        .days-tracker { display: flex; justify-content: space-between; margin-top: 15px; gap: 5px; }
+        .day-box {
+            width: 35px; height: 35px; border-radius: 50%;
+            background-color: #e9ecef; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9em; font-weight: bold; transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .day-box:hover { border-color: var(--primary-color); transform: scale(1.1); }
+        .day-box.completed {
+            background-color: var(--secondary-color); color: white;
+            box-shadow: 0 2px 8px rgba(0, 230, 118, 0.5);
+        }
+        .day-box.failed {
+            background-color: var(--danger-color);
+            color: white;
+            box-shadow: 0 2px 8px rgba(255, 61, 0, 0.4);
+            font-size: 1.4em;
+            line-height: 1;
+        }
+        
+        .btn {
+            color: white; border: none; padding: 16px 22px;
+            border-radius: 12px; cursor: pointer; margin-top: 10px;
+            transition: all 0.3s; font-weight: 700;
+            font-family: 'Tajawal', 'Arial', sans-serif;
+            font-size: 1em; width: 100%;
+        }
+        .btn:disabled { background: #aaa; cursor: not-allowed; opacity: 0.7; }
+        .btn-primary { background: var(--primary-color); box-shadow: 0 4px 12px rgba(41, 121, 255, 0.3); }
+        .btn-primary:hover:not(:disabled) { background: #1967d2; transform: translateY(-2px); }
+        .btn-danger { background-color: var(--danger-color); box-shadow: 0 4px 12px rgba(255, 61, 0, 0.3); }
+        .btn-danger:hover:not(:disabled) { background-color: #c82333; transform: translateY(-2px); }
+        .btn-secondary { background-color: #6c757d; }
+        .btn-secondary:hover:not(:disabled) { background-color: #5a6268; transform: translateY(-2px); }
+        
+        .btn-icon {
+            background: none; border: none; color: var(--danger-color);
+            cursor: pointer; margin: 0; padding: 5px;
+            font-size: 1.4em; width: auto;
+        }
+        .btn-icon:hover { color: #c82333; }
+        .btn-icon.btn-edit {
+            color: var(--primary-color);
+            font-size: 1.2em;
+        }
+        .btn-icon.btn-edit:hover { color: #1967d2; }
+
+        .btn-group { display: flex; gap: 10px; }
+        .btn-group .btn { width: 50%; }
+        
+        .content-section { display: none; }
+        .content-section.active, .content-section[aria-hidden="false"] { display: block; }
+        
+        #notification {
+            position: fixed; bottom: 20px; right: 20px;
+            padding: 15px 25px; border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000; display: none; font-weight: 600;
+        }
+        #notification.success { background-color: var(--secondary-color); color: white; }
+        #notification.error { background-color: var(--danger-color); color: white; }
+        
+        .task-card { margin-bottom: 10px; padding: 15px; }
+        .task-card-header {
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .task-card-header .task-name { flex: 1; margin: 0 10px; font-size: 1.1em; }
+        .task-card.completed { opacity: 0.7; background-color: #f8f9fa; }
+        .task-card .task-name.completed { text-decoration: line-through; }
+        .task-card.overdue { border-right: 5px solid var(--danger-color); }
+        .task-card.priority-high { border-right: 5px solid var(--priority-high); }
+        .task-card.priority-medium { border-right: 5px solid var(--priority-medium); }
+        .task-card.priority-low { border-right: 5px solid var(--priority-low); }
+        .task-card-footer {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 10px; padding-top: 10px; border-top: 1px solid #f0f0f0;
+            font-size: 0.9em; color: var(--text-light);
+        }
+        .due-date-tag {
+            background-color: var(--warning-color); color: #333;
+            padding: 5px 12px; border-radius: 20px;
+            font-size: 0.85em; font-weight: 600;
+        }
+        .due-date-tag.overdue { background-color: var(--danger-color); color: white; }
+        .due-date-tag.completed { background-color: var(--secondary-color); color: white; }
+        .priority-badge {
+            padding: 5px 12px; border-radius: 20px;
+            font-size: 0.85em; font-weight: 600;
+        }
+        .priority-high { background-color: var(--priority-high); color: white; }
+        .priority-medium { background-color: var(--priority-medium); color: white; }
+        .priority-low { background-color: var(--priority-low); color: white; }
+        
+        .list-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px; border-bottom: 1px solid #eee;
+        }
+        .list-item span { display: flex; flex-direction: column; }
+        .list-item .list-item-name { font-weight: 600; }
+        .list-item .list-item-amount { font-size: 0.9em; color: var(--text-light); }
+        .list-item:last-child { border-bottom: none; }
+        
+        .income-list-item {
+            display: flex; align-items: center;
+            padding: 10px; border-bottom: 1px solid #eee;
+        }
+        .income-list-item input[type="checkbox"] { margin: 0 0 0 15px; }
+        .income-list-item .details { flex: 1; }
+        .income-list-item .details .name { font-weight: 600; }
+        .income-list-item .details .amount { font-size: 0.9em; color: var(--text-light); }
+        .income-list-item .amount-display { font-weight: 700; color: var(--secondary-color); }
+        .income-list-item.not-expected .name { text-decoration: line-through; opacity: 0.7; }
+        .income-list-item.not-expected .amount-display { opacity: 0.7; }
+
+        .empty-state {
+            text-align: center; color: #777; padding: 40px 20px;
+            background: #fdfdfd; border: 2px dashed #e0e0e0;
+            border-radius: var(--radius);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .stat-card {
+            padding: 20px;
+            text-align: center;
+        }
+        .chart-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 15px auto;
+        }
+        .chart-container canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .chart-percent {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2em;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .salary-summary-card { padding: 20px; text-align: center; }
+        .salary-summary-card h3 { font-size: 1.1em; color: var(--text-light); margin-bottom: 5px; }
+        .salary-summary-card .value {
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+        .salary-summary-card .value.positive { color: var(--secondary-color); }
+        .salary-summary-card .value.negative { color: var(--danger-color); }
+        .salary-summary-card .value.neutral { color: var(--primary-color); }
+
+        .salary-tracker-card {
+            border-right: 5px solid var(--primary-color);
+        }
+        .salary-stat {
+            display: flex; justify-content: space-between;
+            font-size: 1.1em; margin-bottom: 10px;
+        }
+        .salary-stat .label { font-weight: 600; }
+        .salary-stat .value.spent {
+            color: var(--danger-color);
+            font-weight: 700;
+        }
+        .salary-stat .value.remaining {
+            color: var(--secondary-color);
+            font-weight: 700;
+        }
+        .salary-stat .value.remaining.over {
+            color: var(--danger-color);
+            font-weight: 700;
+        }
+
+        .sinking-fund-card {
+            border-right: 5px solid var(--secondary-color);
+        }
+
+        .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+        .modal-content { background-color: #fff; margin: auto; padding: 25px; border-radius: var(--radius); max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+        .modal-header h3 { margin: 0; color: var(--primary-color); }
+        .modal-close { font-size: 2em; font-weight: bold; cursor: pointer; }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .day-box { width: 28px; height: 28px; }
+            .tabs { grid-template-columns: 1fr 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div id="notification" role="alert" aria-live="polite"></div>
+
+    <div id="archiveModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">تفاصيل اليوم</h3>
+                <span id="modalCloseBtn" class="modal-close" aria-label="إغلاق">&times;</span>
+            </div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+    
+    <div class="dashboard-container">
+        <header class="header">
+            <h1>لوحة تحكم حياتي 🚀</h1>
+            <p style="margin: 10px 0 0 0;">نظّم حياتك المالية والشخصية في مكان واحد</p>
+        </header>
+
+        <nav class="tabs" role="tablist">
+            <button id="tab-financial" data-target="#financial" class="tab-link active" role="tab" aria-selected="true" aria-controls="financial"><span class="icon">💰</span>المالية</button>
+            <button id="tab-salary" data-target="#salary-planner" class="tab-link" role="tab" aria-selected="false" aria-controls="salary-planner"><span class="icon">💸</span>الراتب</button>
+            <button id="tab-sinking" data-target="#sinking-funds" class="tab-link" role="tab" aria-selected="false" aria-controls="sinking-funds"><span class="icon">🛡️</span>الصناديق</button>
+            <button id="tab-tasks" data-target="#tasks" class="tab-link" role="tab" aria-selected="false" aria-controls="tasks"><span class="icon">✅</span>المهام</button>
+            <button id="tab-habits" data-target="#habits" class="tab-link" role="tab" aria-selected="false" aria-controls="habits"><span class="icon">🧘</span>العادات</button>
+            <button id="tab-uber" data-target="#uber-tracker" class="tab-link" role="tab" aria-selected="false" aria-controls="uber-tracker"><span class="icon">🚕</span>أوبر</button>
+            <button id="tab-stats" data-target="#stats" class="tab-link" role="tab" aria-selected="false" aria-controls="stats"><span class="icon">📊</span>الإحصائيات</button>
+            <button id="tab-backup" data-target="#backup" class="tab-link" role="tab" aria-selected="false" aria-controls="backup"><span class="icon">⚙️</span>الإعدادات</button>
+        </nav>
+
+        <section id="financial" class="content-section active" role="tabpanel" aria-labelledby="tab-financial">
+            <h2>الأهداف المالية</h2>
+            <div class="card">
+                <h3>إضافة هدف مالي جديد</h3>
+                <label for="goalName">اسم الهدف</label>
+                <input type="text" id="goalName" placeholder="مثال: شراء سيارة">
+                <label for="goalAmount">المبلغ المستهدف</label>
+                <input type="number" id="goalAmount" placeholder="المبلغ المستهدف" min="1">
+                <label for="currentSavings">المبلغ الحالي (اختياري)</label>
+                <input type="number" id="currentSavings" placeholder="المبلغ الحالي" min="0">
+                <label for="goalDueDate">تاريخ مستهدف (اختياري)</label>
+                <input type="date" id="goalDueDate">
+                <button class="btn btn-primary" id="addGoalBtn">إضافة</button>
+            </div>
+            <div class="grid-2" id="financialGoalsContainer"></div>
+        </section>
+
+        <section id="salary-planner" class="content-section" role="tabpanel" aria-labelledby="tab-salary" aria-hidden="true">
+            <h2>الميزانية الصفرية</h2>
+            
+            <div class="card" style="text-align: center;">
+                <h3 style="font-size: 1.1em; color: var(--text-light); margin-bottom: 5px;">المتبقي على الراتب القادم (يوم <span id="salaryDayLabel">27</span>)</h3>
+                <div class="value neutral" id="daysUntilSalaryDisplay" style="font-size: 2.2em; color: var(--secondary-color);">- أيام</div>
+            </div>
+
+            <div class="card">
+                <h3>ملخص الميزانية</h3>
+                <div class="grid-3" style="gap: 10px;">
+                    <div class="salary-summary-card">
+                        <h3>إجمالي الدخل (المتوقع)</h3>
+                        <div class="value positive" id="totalExpectedIncomeDisplay">0 ريال</div>
+                    </div>
+                    <div class="salary-summary-card">
+                        <h3>إجمالي المخصص</h3>
+                        <div class="value neutral" id="totalAllocatedDisplay">0 ريال</div>
+                    </div>
+                    <div class="salary-summary-card">
+                        <h3>المتبقي للتوزيع</h3>
+                        <div class="value" id="unallocatedAmountDisplay">0 ريال</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>الدخل المتوقع (لهذا الشهر)</h3>
+                <p style="color: var(--text-light); line-height: 1.6; margin-top: -15px;">
+                    حدد الدخل الذي تتوقع استلامه هذا الشهر.
+                </p>
+                <div id="incomeReceivedContainer"></div>
+            </div>
+            
+            <div class="card">
+                <h3>إضافة دخل إضافي (لمرة واحدة هذا الشهر)</h3>
+                 <div style="display:flex; gap:10px; margin-bottom: 15px;">
+                    <input type="text" id="oneTimeIncomeName" placeholder="اسم المصدر (عيدية، هدية...)" style="margin-bottom:0;">
+                    <input type="number" id="oneTimeIncomeAmount" placeholder="المبلغ" min="1" style="margin-bottom:0; flex-basis: 150px;">
+                </div>
+                <button class="btn btn-primary" id="addOneTimeIncomeBtn">إضافة</button>
+            </div>
+
+            <div class="card">
+                <h3>إضافة فئة ميزانية</h3>
+                <input type="text" id="newCategoryName" placeholder="اسم الفئة الجديدة (بنزين، ادخار...)" style="margin-bottom:12px;">
+                <button class="btn btn-primary" id="addCategoryBtn">إضافة فئة</button>
+            </div>
+            
+            <div class="grid-2" id="budgetTrackerContainer"></div>
+        </section>
+
+        <section id="sinking-funds" class="content-section" role="tabpanel" aria-labelledby="tab-sinking" aria-hidden="true">
+            <h2>صناديق الادخار 🛡️</h2>
+            <div class="card">
+                <h3>إضافة صندوق ادخار جديد</h3>
+                <p style="color: var(--text-light); line-height: 1.6; margin-top: -15px;">
+                    خطط للمصاريف الكبيرة (تأمين السيارة، هدايا العيد...) بتوفير مبالغ صغيرة شهرياً
+                </p>
+                <label for="fundName">اسم الصندوق</label>
+                <input type="text" id="fundName" placeholder="مثال: تأمين السيارة">
+                <label for="fundTarget">المبلغ المطلوب</label>
+                <input type="number" id="fundTarget" placeholder="المبلغ الكلي" min="1">
+                <label for="fundDueDate">التاريخ المستهدف</label>
+                <input type="date" id="fundDueDate">
+                <button class="btn btn-primary" id="addFundBtn">إضافة صندوق</button>
+            </div>
+            <div class="grid-2" id="sinkingFundsContainer"></div>
+        </section>
+
+        <section id="uber-tracker" class="content-section" role="tabpanel" aria-labelledby="tab-uber" aria-hidden="true">
+            <h2 id="uberTitle">هدف أوبر اليومي (0 ريال)</h2>
+            <div class="card grid-2">
+                <div><h3>صافي الربح</h3><p class="uber-stat stat-net" id="uberNetProfit">0 ريال</p></div>
+                <div><h3>المتبقي</h3><p class="uber-stat stat-remaining" id="uberRemaining">0 ريال</p></div>
+            </div>
+            <div class="card">
+                <h3>الخطة الذكية</h3>
+                <p>لتحقيق صافي الربح المتبقي، تحتاج دخل إجمالي: <span class="uber-stat stat-needed" id="uberGrossNeeded">0 ريال</span></p>
+            </div>
+            <div class="card">
+                <h3>تسجيل مشوار</h3>
+                <input type="number" id="rideIncome" placeholder="دخل المشوار الإجمالي" min="1">
+                <input type="number" id="rideExpense" placeholder="مصروف إضافي (بنزين...)" min="0">
+                <button class="btn btn-primary" id="addRideBtn">إضافة مشوار</button>
+            </div>
+            <div class="card">
+                <h3>مصروف عام (خارج المشاوير)</h3>
+                <input type="number" id="generalExpenseAmount" placeholder="المبلغ" min="1">
+                <input type="text" id="generalExpenseName" placeholder="الوصف (غسيل سيارة...)">
+                <button class="btn btn-primary" id="addGeneralExpenseBtn">تسجيل مصروف</button>
+            </div>
+            <div class="card">
+                <h3>سجل اليوم</h3>
+                <div id="ridesHistoryContainer"></div>
+                <div id="generalExpensesHistoryContainer"></div>
+                <button class="btn btn-danger" id="endUberDayBtn">إنهاء وأرشفة اليوم</button>
+            </div>
+        </section>
+
+        <section id="tasks" class="content-section" role="tabpanel" aria-labelledby="tab-tasks" aria-hidden="true">
+            <h2>المشاريع والمهام</h2>
+            <div class="card">
+                <h3>إضافة مشروع جديد</h3>
+                <input type="text" id="projectName" placeholder="اسم المشروع">
+                <button class="btn btn-primary" id="addProjectBtn">إضافة مشروع</button>
+            </div>
+            <div class="card">
+                <h3>إضافة مهمة جديدة</h3>
+                <label for="taskProjectSelect">اختر المشروع</label>
+                <select id="taskProjectSelect"></select>
+                <label for="taskName">اسم المهمة</label>
+                <input type="text" id="taskName" placeholder="اسم المهمة">
+                <label for="taskDueDate">تاريخ الاستحقاق</label>
+                <input type="date" id="taskDueDate">
+                <label for="taskPriority">الأولوية</label>
+                <select id="taskPriority">
+                    <option value="low">منخفضة 🔵</option>
+                    <option value="medium" selected>متوسطة 🟠</option>
+                    <option value="high">عالية 🔴</option>
+                </select>
+                <button class="btn btn-primary" id="addTaskBtn">إضافة مهمة</button>
+            </div>
+            <div id="projectsContainer"></div>
+        </section>
+
+        <section id="habits" class="content-section" role="tabpanel" aria-labelledby="tab-habits" aria-hidden="true">
+            <h2>العادات الأسبوعية</h2>
+            <div class="card">
+                <h3>إضافة عادة</h3>
+                <input type="text" id="habitName" placeholder="اسم العادة">
+                <button class="btn btn-primary" id="addHabitBtn">إضافة</button>
+            </div>
+            <div class="grid-3" id="habitsContainer"></div>
+        </section>
+
+        <section id="stats" class="content-section" role="tabpanel" aria-labelledby="tab-stats" aria-hidden="true">
+            <h2>الإحصائيات</h2>
+            <div class="stat-grid">
+                <div class="card stat-card">
+                    <h3>المهام المنجزة</h3>
+                    <div class="chart-container">
+                        <canvas id="tasksChart"></canvas>
+                        <div class="chart-percent" id="tasksChartPercent" style="color: var(--primary-color);">0%</div>
+                    </div>
+                    <span id="tasksChartLabel">0 / 0 مهمة</span>
+                </div>
+                <div class="card stat-card">
+                    <h3>نجاح العادات (الأسبوعي)</h3>
+                    <div class="chart-container">
+                        <canvas id="habitsChart"></canvas>
+                        <div class="chart-percent" id="habitsChartPercent" style="color: var(--secondary-color);">0%</div>
+                    </div>
+                    <span id="habitsChartLabel">0 / 0 إنجاز</span>
+                </div>
+            </div>
+             <div class="card stat-card">
+                <h3>إنجاز الأهداف المالية</h3>
+                <div class="chart-container">
+                    <canvas id="financialChart"></canvas>
+                    <div class="chart-percent" id="financialChartPercent" style="color: var(--primary-color);">0%</div>
+                </div>
+                <span id="financialChartLabel">0 / 0 ريال</span>
+            </div>
+            <div class="card stat-card">
+                <h3>توزيع المصروفات (هذا الشهر)</h3>
+                <div class="chart-container" style="width: 200px; height: 200px;">
+                    <canvas id="expensesChart"></canvas>
+                </div>
+                <div id="expensesLegend" style="margin-top: 20px; font-size: 0.9em;"></div>
+            </div>
+            <div class="card" id="uberArchiveContainer">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2>أرشيف أوبر</h2>
+                    <button class="btn btn-danger" id="clearArchiveBtn" style="margin-top:0; width: auto; padding: 10px 15px; font-size: 0.9em;">تصفير الأرشيف</button>
+                </div>
+                <div id="uberArchiveList"></div>
+            </div>
+        </section>
+
+        <section id="backup" class="content-section" role="tabpanel" aria-labelledby="tab-backup" aria-hidden="true">
+            <h2>الإعدادات والنسخ الاحتياطي</h2>
+            
+            <div class="card">
+                <h3>مصادر الدخل المتكررة (قوالب)</h3>
+                <p style="color: var(--text-light); line-height: 1.6; margin-top: -15px;">
+                    سجل مصادر دخلك المتكررة (راتب، إيجار...) لتظهر لك بداية كل شهر.
+                </p>
+                <div id="incomeSourcesContainer" style="margin-bottom: 20px;"></div>
+                <div style="display:flex; gap:10px; margin-bottom: 15px;">
+                    <input type="text" id="newIncomeSource" placeholder="اسم المصدر (راتب، إيجار...)" style="margin-bottom:0;">
+                    <input type="number" id="newIncomeAmount" placeholder="المبلغ" min="1" style="margin-bottom:0; flex-basis: 150px;">
+                </div>
+                <button class="btn btn-primary" id="addIncomeSourceBtn">إضافة مصدر متكرر</button>
+            </div>
+            
+            <div class="card">
+                <h3>إعدادات الراتب</h3>
+                <label for="configSalaryDay">يوم بداية الشهر المالي (يوم نزول الراتب الأساسي)</label>
+                <input type="number" id="configSalaryDay" min="1" max="31">
+                <button class="btn btn-primary" id="saveSalaryConfigBtn">حفظ يوم الراتب</button>
+            </div>
+
+            <div class="card">
+                <h3>إعدادات أوبر</h3>
+                <label for="configUberGoal">الهدف اليومي (صافي)</label>
+                <input type="number" id="configUberGoal" min="1">
+                <label for="configUberCommission">نسبة عمولة أوبر (مثال: 0.35 للـ 35%)</label>
+                <input type="number" id="configUberCommission" min="0.01" max="0.99" step="0.01">
+                <button class="btn btn-primary" id="saveUberConfigBtn">حفظ إعدادات أوبر</button>
+            </div>
+
+            <div class="card">
+                <h3>النسخ الاحتياطي</h3>
+                <p>احفظ بياناتك أو استرجعها من ملف.</p>
+                <div class="backup-section" style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="btn btn-primary" id="exportDataBtn" style="width: auto;">📥 تصدير البيانات</button>
+                    <button class="btn btn-secondary" id="importDataBtn" style="width: auto;">📤 استيراد البيانات</button>
+                    <input type="file" id="importFile" accept=".json" style="display:none">
+                </div>
+            </div>
+            <div class="card">
+                <h3>⚠️ حذف البيانات</h3>
+                <p>سيتم حذف جميع البيانات من هذا المتصفح نهائياً.</p>
+                <button class="btn btn-danger" id="clearAllDataBtn" style="width: auto;">🗑️ حذف الكل</button>
+            </div>
+        </section>
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// =================================================================
+// Life Dashboard v10.1 (Hotfix)
+// ✅ إصلاح البق اللي يخلي زر "الإضافة" يعلق
+// ✨ إضافة زر التعديل (✏️) لكل العناصر
+// 🛡️ إضافة صناديق الادخار
+// 🚀 إضافة أولوية المهام
+// 📊 إضافة رسم توزيع المصروفات
+// =================================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // #region --- Type Definitions ---
+    /**
+     * @typedef {Object} Goal
+     * @property {string} id
+     * @property {string} name
+     * @property {number} target
+     * @property {number} current
+     * @property {string} dueDate
+     */
+    
+    /**
+     * @typedef {Object} Task
+     * @property {string} id
+     * @property {string} name
+     * @property {string} dueDate
+     * @property {string} priority ('high', 'medium', 'low')
+     * @property {boolean} completed
+     */
+    
+    /**
+     * @typedef {Object} Project
+     * @property {string} id
+     * @property {string} name
+     * @property {Task[]} tasks
+     */
+
+    /**
+     * @typedef {Object} Habit
+     * @property {string} id
+     * @property {string} name
+     * @property {number[]} completedDays
+     * @property {number[]} failedDays
+     * @property {number} lastWeekStart
+     */
+    
+    /**
+     * @typedef {Object} SinkingFund
+     * @property {string} id
+     * @property {string} name
+     * @property {number} target
+     * @property {number} current
+     * @property {string} dueDate
+     * @property {number} monthlyAmount
+     * @property {string} linkedCategoryId
+     */
+
+    /**
+     * @typedef {Object} BudgetCategory
+     * @property {string} id
+     * @property {string} name
+     * @property {number} monthlyBudget
+     * @property {number} currentSpent
+     * @property {boolean} isSinkingFund
+     */
+
+    /** @typedef {Object} SalaryReset */
+    /** @typedef {Object} OneTimeIncome */
+    
+    /**
+     * @typedef {Object} SalaryData
+     * @property {BudgetCategory[]} categories
+     * @property {SalaryReset} lastReset
+     * @property {string[]} expectedIncomeIds
+     * @property {OneTimeIncome[]} oneTimeIncomes
+     */
+
+    /**
+     * @typedef {Object} IncomeSource
+     * @property {string} id
+     * @property {string} name
+     * @property {number} amount
+     */
+     
+    /** @typedef {Object} UberRide */
+    /** @typedef {Object} UberExpense */
+    /** @typedef {Object} UberDay */
+
+    /**
+     * @typedef {Object} AppState
+     * @property {Goal[]} goals
+     * @property {Project[]} projects
+     * @property {Habit[]} habits
+     * @property {SinkingFund[]} sinkingFunds
+     * @property {SalaryData} salary
+     * @property {IncomeSource[]} incomeTemplates
+     * @property {{ today: UberDay, archive: UberDay[] }} uber
+     */
+
+    /** @typedef {Object} AppConfig */
+    // #endregion
+
+    const App = {
+        
+        // --- 1. STATE & CONFIG ---
+        
+        /** @type {AppState} */
+        state: {
+            goals: [],
+            projects: [],
+            habits: [],
+            sinkingFunds: [],
+            salary: { 
+                categories: [], 
+                lastReset: { year: 2020, month: 0 },
+                expectedIncomeIds: [],
+                oneTimeIncomes: []
+            },
+            incomeTemplates: [],
+            uber: { 
+                today: { date: '', netProfitToday: 0, rides: [], generalExpenses: [] }, 
+                archive: [] 
+            }
+        },
+        
+        /** @type {AppConfig} */
+        config: {
+            uberGoal: 150,
+            uberCommission: 0.35,
+            salaryStartDay: 27
+        },
+        
+        domCache: {},
+        charts: {},
+        saveTimeout: null,
+        lastSelectedProjectId: null,
+        
+        // --- Storage Keys ---
+        OLD_KEYS: {
+            state_v9: 'dashboardState_v9',
+            config_v9: 'dashboardConfig_v9',
+            state_v8: 'dashboardState_v8', // (لضمان الترحيل)
+            config_v8: 'dashboardConfig_v8'
+        },
+        NEW_KEYS: {
+            state: 'dashboardState_v10', // نستخدم v10 لأن الهيكل لم يتغير
+            config: 'dashboardConfig_v10'
+        },
+        
+        // --- 2. CORE METHODS (Init, Load, Save) ---
+
+        init() {
+            this.utils.cacheDOM();
+            this.runMigrations(); 
+            this.loadStateAndConfig();
+            this.initSalaryMonth(); 
+            this.initUberDay();
+            this.bindEventListeners();
+            this.renderAll();
+            this.utils.show('تم تحميل لوحة التحكم بنجاح! 🎉', 'success');
+        },
+
+        debouncedSave() {
+            clearTimeout(this.saveTimeout);
+            this.saveTimeout = setTimeout(() => {
+                localStorage.setItem(this.NEW_KEYS.state, JSON.stringify(this.state));
+            }, 1000); 
+        },
+
+        saveConfig() {
+            localStorage.setItem(this.NEW_KEYS.config, JSON.stringify(this.config));
+        },
+        
+        loadStateAndConfig() {
+            try {
+                const storedState = localStorage.getItem(this.NEW_KEYS.state);
+                if (storedState) {
+                    const parsedState = JSON.parse(storedState);
+                    this.state = { ...this.state, ...parsedState };
+                    this.state.salary = { ...this.state.salary, ...(parsedState.salary || {}) };
+                    this.state.uber = { ...this.state.uber, ...(parsedState.uber || {}) };
+                    this.state.projects = parsedState.projects || [];
+                    this.state.sinkingFunds = parsedState.sinkingFunds || [];
+                    this.state.salary.lastReset = parsedState.salary?.lastReset || { year: 2020, month: 0 };
+                    this.state.salary.expectedIncomeIds = parsedState.salary?.expectedIncomeIds || [];
+                    this.state.salary.oneTimeIncomes = parsedState.salary?.oneTimeIncomes || [];
+                    this.state.habits = parsedState.habits || [];
+                    this.state.incomeTemplates = parsedState.incomeTemplates || [];
+                }
+            } catch (e) {
+                console.error("Failed to parse state:", e);
+                this.utils.show('خطأ في قراءة البيانات المحفوظة، قد يتم فقدان بعضها.', 'error');
+            }
+            
+            try {
+                const storedConfig = localStorage.getItem(this.NEW_KEYS.config);
+                if (storedConfig) {
+                    this.config = { ...this.config, ...JSON.parse(storedConfig) };
+                }
+            } catch (e) { console.error("Failed to parse config:", e); }
+            
+            this.domCache.configUberGoal.value = this.config.uberGoal;
+            this.domCache.configUberCommission.value = this.config.uberCommission;
+            this.domCache.configSalaryDay.value = this.config.salaryStartDay;
+        },
+        
+        runMigrations() {
+            if (localStorage.getItem(this.NEW_KEYS.state)) {
+                return; // Already on v10
+            }
+            
+            // ترحيل من v9 (أو v8)
+            const old_state_str = localStorage.getItem(this.OLD_KEYS.state_v9) || localStorage.getItem(this.OLD_KEYS.state_v8);
+            const old_config_str = localStorage.getItem(this.OLD_KEYS.config_v9) || localStorage.getItem(this.OLD_KEYS.config_v8);
+            
+            if (old_state_str && old_config_str) {
+                const oldState = JSON.parse(old_state_str);
+                const oldConfig = JSON.parse(old_config_str);
+
+                // إضافة مصفوفة صناديق الادخار
+                oldState.sinkingFunds = oldState.sinkingFunds || [];
+                
+                // إضافة الأولوية للمهام
+                oldState.projects = (oldState.projects || []).map(p => ({
+                    ...p,
+                    tasks: (p.tasks || []).map(t => ({ ...t, priority: t.priority || 'medium' }))
+                }));
+                
+                localStorage.setItem(this.NEW_KEYS.state, JSON.stringify(oldState));
+                localStorage.setItem(this.NEW_KEYS.config, JSON.stringify(oldConfig));
+                
+                localStorage.removeItem(this.OLD_KEYS.state_v9);
+                localStorage.removeItem(this.OLD_KEYS.config_v9);
+                localStorage.removeItem(this.OLD_KEYS.state_v8);
+                localStorage.removeItem(this.OLD_KEYS.config_v8);
+                
+                this.utils.show('تم التحديث إلى الإصدار 10.0 Pro! 🎉', 'success');
+                return;
+            }
+        },
+
+        bindEventListeners() {
+            this.utils.qs('.tabs').addEventListener('click', e => this.handlers.switchTab(e));
+            this.domCache.addGoalBtn.addEventListener('click', e => this.handlers.addGoal(e));
+            this.domCache.goalsContainer.addEventListener('click', e => this.handlers.handleGoalClick(e));
+            this.domCache.addCategoryBtn.addEventListener('click', e => this.handlers.addSalaryCategory(e));
+            this.domCache.budgetTrackerContainer.addEventListener('click', e => this.handlers.handleBudgetClick(e));
+            this.domCache.addIncomeSourceBtn.addEventListener('click', e => this.handlers.addIncomeTemplate(e));
+            this.domCache.incomeSourcesContainer.addEventListener('click', e => this.handlers.handleIncomeTemplateClick(e));
+            this.domCache.incomeReceivedContainer.addEventListener('click', e => this.handlers.handleIncomeToggle(e));
+            this.domCache.addOneTimeIncomeBtn.addEventListener('click', e => this.handlers.addOneTimeIncome(e));
+            this.domCache.saveSalaryConfigBtn.addEventListener('click', e => this.handlers.saveSalaryConfig(e));
+            // Sinking Funds
+            this.domCache.addFundBtn.addEventListener('click', e => this.handlers.addSinkingFund(e));
+            this.domCache.sinkingFundsContainer.addEventListener('click', e => this.handlers.handleFundClick(e));
+            // Uber
+            this.domCache.addRideBtn.addEventListener('click', e => this.handlers.addUberRide(e));
+            this.domCache.addGeneralExpenseBtn.addEventListener('click', e => this.handlers.addGeneralExpense(e));
+            this.domCache.endUberDayBtn.addEventListener('click', e => this.handlers.endUberDay(e));
+            this.domCache.ridesHistoryContainer.addEventListener('click', e => this.handlers.handleUberHistoryClick(e));
+            this.domCache.generalExpensesHistoryContainer.addEventListener('click', e => this.handlers.handleUberHistoryClick(e));
+            // Tasks
+            this.domCache.addProjectBtn.addEventListener('click', e => this.handlers.addProject(e));
+            this.domCache.addTaskBtn.addEventListener('click', e => this.handlers.addTask(e));
+            this.domCache.projectsContainer.addEventListener('click', e => this.handlers.handleProjectClick(e));
+            this.domCache.taskProjectSelect.addEventListener('change', e => {
+                this.lastSelectedProjectId = e.target.value;
+            });
+            // Habits
+            this.domCache.addHabitBtn.addEventListener('click', e => this.handlers.addHabit(e));
+            this.domCache.habitsContainer.addEventListener('click', e => this.handlers.handleHabitClick(e));
+            // Stats
+            this.domCache.clearArchiveBtn.addEventListener('click', e => this.handlers.clearUberArchive(e));
+            this.domCache.uberArchiveList.addEventListener('click', e => this.handlers.showArchiveDetail(e));
+            this.domCache.modalCloseBtn.addEventListener('click', () => this.domCache.archiveModal.style.display = 'none');
+            this.domCache.archiveModal.addEventListener('click', e => {
+                if (e.target === this.domCache.archiveModal) {
+                    this.domCache.archiveModal.style.display = 'none';
+                }
+            });
+            // Settings
+            this.domCache.saveUberConfigBtn.addEventListener('click', e => this.handlers.saveUberConfig(e));
+            this.domCache.exportDataBtn.addEventListener('click', () => this.handlers.exportData());
+            this.domCache.importDataBtn.addEventListener('click', () => this.domCache.importFile.click());
+            this.domCache.importFile.addEventListener('change', e => this.handlers.importData(e));
+            this.domCache.clearAllDataBtn.addEventListener('click', () => this.handlers.clearAllData());
+        },
+
+        // --- 3. RENDER METHODS (View Logic) ---
+
+        renderAll() {
+            this.renderIncomeTemplates();
+            this.renderGoals();
+            this.renderSalary();
+            this.renderSinkingFunds();
+            this.renderUber();
+            this.renderProjectsAndTasks();
+            this.renderHabits();
+        },
+        
+        renderGoals() {
+            const container = this.domCache.goalsContainer;
+            if (this.state.goals.length === 0) {
+                container.innerHTML = `<div class="empty-state">لا توجد أهداف مالية. ابدأ بإضافة هدف جديد!</div>`;
+                return;
+            }
+            let html = '';
+            this.state.goals.forEach(g => {
+                html += this.builders.goalCard(g, true);
+            });
+            container.innerHTML = html;
+        },
+
+        renderSalary() {
+            const { categories, expectedIncomeIds, oneTimeIncomes } = this.state.salary;
+
+            // --- 0. حساب العد التنازلي للراتب ---
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const salaryDay = App.config.salaryStartDay;
+            App.domCache.salaryDayLabel.textContent = salaryDay;
+            let nextSalaryDate = new Date(today.getFullYear(), today.getMonth(), salaryDay);
+            nextSalaryDate.setHours(0, 0, 0, 0);
+            if (today.getTime() >= nextSalaryDate.getTime()) {
+                nextSalaryDate.setMonth(nextSalaryDate.getMonth() + 1);
+            }
+            const diffTime = nextSalaryDate.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            let daysText = `${diffDays} أيام`;
+            if (diffDays === 0) daysText = "اليوم! 🎉";
+            else if (diffDays === 1) daysText = "غداً";
+            else if (diffDays === 2) daysText = "يومان";
+            App.domCache.daysUntilSalaryDisplay.textContent = daysText;
+
+            // 1. حساب الدخل المتوقع
+            let totalExpectedIncome = 0;
+            this.state.incomeTemplates.forEach(src => {
+                if (expectedIncomeIds.includes(src.id)) {
+                    totalExpectedIncome += src.amount;
+                }
+            });
+            oneTimeIncomes.forEach(src => {
+                totalExpectedIncome += src.amount;
+            });
+            this.domCache.totalExpectedIncomeDisplay.textContent = this.utils.fmt(totalExpectedIncome);
+
+            // 2. حساب الدخل المستلم (فقط الدخل لمرة واحدة)
+            // ******** إزالة السطر المسبب للمشكلة ********
+            // const totalReceivedIncome = oneTimeIncomes.reduce((acc, src) => acc + src.amount, 0);
+            // this.domCache.totalReceivedIncomeDisplay.textContent = this.utils.fmt(totalReceivedIncome);
+            // ***************************************
+
+            // 3. حساب المجموع المخصص
+            const totalAllocated = categories.reduce((acc, cat) => acc + cat.monthlyBudget, 0);
+            this.domCache.totalAllocatedDisplay.textContent = this.utils.fmt(totalAllocated);
+            
+            // 4. حساب المتبقي للتوزيع
+            const unallocated = totalExpectedIncome - totalAllocated;
+            this.domCache.unallocatedAmountDisplay.textContent = this.utils.fmt(unallocated);
+            let unallocatedClass = 'neutral';
+            if (unallocated > 0) unallocatedClass = 'positive';
+            if (unallocated < 0) unallocatedClass = 'negative';
+            this.domCache.unallocatedAmountDisplay.className = `value ${unallocatedClass}`;
+            
+            // 5. رسم كرت الدخل المتوقع
+            const incomeReceivedContainer = this.domCache.incomeReceivedContainer;
+            if(this.state.incomeTemplates.length === 0 && oneTimeIncomes.length === 0) {
+                incomeReceivedContainer.innerHTML = `<p style="color:#777;">لم تقم بإضافة مصادر دخل. اذهب للإعدادات ⚙️</p>`;
+            } else {
+                let incomeHtml = '';
+                this.state.incomeTemplates.forEach(src => {
+                    const isExpected = expectedIncomeIds.includes(src.id);
+                    incomeHtml += this.builders.incomeExpectedItem(src, isExpected, true);
+                });
+                oneTimeIncomes.forEach(src => {
+                    incomeHtml += this.builders.oneTimeIncomeItem(src, true);
+                });
+                incomeReceivedContainer.innerHTML = incomeHtml;
+            }
+
+            // 6. رسم كروت الفئات
+            const container = this.domCache.budgetTrackerContainer;
+            if (categories.length === 0) {
+                container.innerHTML = `<div class="empty-state">لا توجد فئات للميزانية. ابدأ بإضافة فئة جديدة.</div>`;
+                return;
+            }
+            let html = '';
+            categories.forEach(cat => {
+                html += this.builders.salaryTrackerCard(cat, true);
+            });
+            container.innerHTML = html;
+        },
+        
+        renderSinkingFunds() {
+            const container = this.domCache.sinkingFundsContainer;
+            if (this.state.sinkingFunds.length === 0) {
+                container.innerHTML = `<div class="empty-state">لا توجد صناديق ادخار. ابدأ بإضافة صندوق جديد!</div>`;
+                return;
+            }
+            let html = '';
+            this.state.sinkingFunds.forEach(f => {
+                html += this.builders.sinkingFundCard(f, true);
+            });
+            container.innerHTML = html;
+        },
+        
+        renderIncomeTemplates() {
+            const container = this.domCache.incomeSourcesContainer;
+            if (this.state.incomeTemplates.length === 0) {
+                container.innerHTML = `<p style="color:#777;">لم تقم بإضافة مصادر دخل متكررة بعد.</p>`;
+                return;
+            }
+            let html = '';
+            this.state.incomeTemplates.forEach(src => {
+                html += this.builders.incomeSourceItem(src, true);
+            });
+            container.innerHTML = html;
+        },
+
+        renderUber() {
+            const { today } = this.state.uber;
+            const { uberGoal, uberCommission } = this.config;
+            let net = 0;
+            today.rides.forEach(r => net += r.net);
+            today.generalExpenses.forEach(e => net -= e.amount);
+            today.netProfitToday = net;
+            const remaining = Math.max(0, uberGoal - today.netProfitToday);
+            const grossNeeded = remaining > 0 ? remaining / (1 - uberCommission) : 0;
+            this.domCache.uberTitle.textContent = `هدف أوبر اليومي (${this.utils.fmt(uberGoal)})`;
+            this.domCache.uberNetProfit.textContent = this.utils.fmt(today.netProfitToday);
+            this.domCache.uberRemaining.textContent = this.utils.fmt(remaining);
+            this.domCache.uberGrossNeeded.textContent = this.utils.fmt(grossNeeded);
+            const ridesContainer = this.domCache.ridesHistoryContainer;
+            let ridesHtml = '<h4 style="color:var(--primary-color)">المشاوير:</h4>';
+            if (today.rides.length === 0) ridesHtml += '<p style="font-size:0.9em;color:#777;">لم يتم تسجيل مشاوير بعد.</p>';
+            today.rides.forEach((r, i) => { ridesHtml += this.builders.uberRideItem(r, i, true); });
+            ridesContainer.innerHTML = ridesHtml;
+            const expensesContainer = this.domCache.generalExpensesHistoryContainer;
+            let expensesHtml = '<h4 style="color:var(--primary-color)">مصروفات عامة:</h4>';
+            if (today.generalExpenses.length === 0) expensesHtml += '<p style="font-size:0.9em;color:#777;">لم يتم تسجيل مصروفات عامة بعد.</p>';
+            today.generalExpenses.forEach((e, i) => { expensesHtml += this.builders.uberExpenseItem(e, i, true); });
+            expensesContainer.innerHTML = expensesHtml;
+        },
+        
+        renderUberArchive() {
+            const container = this.domCache.uberArchiveList;
+            if (this.state.uber.archive.length === 0) {
+                container.innerHTML = `<div class="empty-state" style="padding: 20px;">لا يوجد أيام مؤرشفة بعد.</div>`;
+                this.domCache.clearArchiveBtn.style.display = 'none';
+                return;
+            }
+            this.domCache.clearArchiveBtn.style.display = 'block';
+            let html = '';
+            [...this.state.uber.archive].reverse().forEach(day => {
+                html += this.builders.uberArchiveItem(day, true);
+            });
+            container.innerHTML = html;
+        },
+
+        renderProjectsAndTasks() {
+            const container = this.domCache.projectsContainer;
+            const select = this.domCache.taskProjectSelect;
+            let containerHtml = '';
+            let selectHtml = '';
+            if (this.state.projects.length === 0) {
+                container.innerHTML = `<div class="empty-state">لا توجد مشاريع. ابدأ بإضافة مشروع جديد من الأعلى.</div>`;
+                select.innerHTML = '<option value="">أولاً، قم بإضافة مشروع</option>';
+                this.domCache.addTaskBtn.disabled = true; 
+                return;
+            }
+            this.domCache.addTaskBtn.disabled = false; 
+            this.state.projects.forEach(p => {
+                selectHtml += `<option value="${p.id}">${this.utils.escapeHTML(p.name)}</option>`;
+                containerHtml += this.builders.projectCard(p, true);
+            });
+            container.innerHTML = containerHtml;
+            select.innerHTML = selectHtml;
+            if (this.lastSelectedProjectId && select.querySelector(`option[value="${this.lastSelectedProjectId}"]`)) {
+                select.value = this.lastSelectedProjectId;
+            } else if (this.state.projects.length > 0) {
+                this.lastSelectedProjectId = this.state.projects[0].id;
+                select.value = this.lastSelectedProjectId;
+            }
+        },
+
+        renderHabits() {
+            const container = this.domCache.habitsContainer;
+            const weekStart = this.utils.getWeekStart(new Date()).getTime();
+            if (this.state.habits.length === 0) {
+                container.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1;">لا توجد عادات. ابدأ بإضافة عادة جديدة!</div>`;
+                return;
+            }
+            let html = '';
+            let didReset = false;
+            this.state.habits.forEach(h => {
+                h.completedDays = h.completedDays || [];
+                h.failedDays = h.failedDays || [];
+                if (h.lastWeekStart < weekStart) {
+                    h.completedDays = [];
+                    h.failedDays = [];
+                    h.lastWeekStart = weekStart;
+                    didReset = true;
+                }
+                html += this.builders.habitCard(h, true);
+            });
+            container.innerHTML = html;
+            if (didReset) {
+                this.debouncedSave();
+            }
+        },
+        
+        renderStats() {
+            let totalWeeklyGoal = 0;
+            let totalWeeklyCompleted = 0;
+            const weekStart = this.utils.getWeekStart(new Date()).getTime();
+            this.state.habits.forEach(h => {
+                h.completedDays = h.completedDays || [];
+                h.failedDays = h.failedDays || [];
+                if (h.lastWeekStart < weekStart) {
+                    h.completedDays = [];
+                    h.failedDays = [];
+                    h.lastWeekStart = weekStart;
+                }
+                totalWeeklyGoal += 7;
+                totalWeeklyCompleted += h.completedDays.length;
+            });
+
+            let totalTasks = 0, completedTasks = 0;
+            this.state.projects.forEach(p => {
+                totalTasks += p.tasks.length;
+                completedTasks += p.tasks.filter(t => t.completed).length;
+            });
+            const tasksPercent = totalTasks > 0 ? ((completedTasks / totalTasks) * 100) : 0;
+            
+            const habitsPercent = totalWeeklyGoal > 0 ? ((totalWeeklyCompleted / totalWeeklyGoal) * 100) : 0;
+
+            const totalTarget = this.state.goals.reduce((acc, x) => acc + x.target, 0);
+            const totalCurrent = this.state.goals.reduce((acc, x) => acc + x.current, 0);
+            const financialPercent = totalTarget > 0 ? ((totalCurrent / totalTarget) * 100) : 0;
+
+            this.domCache.tasksChartPercent.textContent = `${tasksPercent.toFixed(0)}%`;
+            this.domCache.tasksChartLabel.textContent = `${completedTasks} / ${totalTasks} مهمة`;
+            this.domCache.habitsChartPercent.textContent = `${habitsPercent.toFixed(0)}%`;
+            this.domCache.habitsChartLabel.textContent = `${totalWeeklyCompleted} / ${totalWeeklyGoal} إنجاز`;
+            this.domCache.financialChartPercent.textContent = `${financialPercent.toFixed(0)}%`;
+            this.domCache.financialChartLabel.textContent = `${this.utils.fmt(totalCurrent)} / ${this.utils.fmt(totalTarget)}`;
+            this.utils.createDonutChart('tasksChart', tasksPercent, 'var(--primary-color)');
+            this.utils.createDonutChart('habitsChart', habitsPercent, 'var(--secondary-color)');
+            this.utils.createDonutChart('financialChart', financialPercent, 'var(--primary-color)');
+            
+            this.renderExpensesChart();
+            this.renderUberArchive();
+        },
+        
+        renderExpensesChart() {
+            const categories = this.state.salary.categories.filter(c => !c.isSinkingFund);
+            const totalSpent = categories.reduce((acc, c) => acc + c.currentSpent, 0);
+
+            if (categories.length === 0 || totalSpent === 0) {
+                const legend = this.utils.qs('#expensesLegend');
+                legend.innerHTML = '<p style="color:#777; text-align:center;">لا توجد مصروفات مسجلة هذا الشهر</p>';
+                this.utils.createPieChart('expensesChart', [], [], []);
+                return;
+            }
+            
+            const labels = categories.map(c => c.name);
+            const data = categories.map(c => c.currentSpent);
+            const colors = [
+                '#2979ff', '#00e676', '#ff3d00', '#ffab00', '#9c27b0',
+                '#00bcd4', '#ff5722', '#4caf50', '#f44336', '#3f51b5'
+            ];
+            
+            this.utils.createPieChart('expensesChart', labels, data, colors);
+            
+            const legend = this.utils.qs('#expensesLegend');
+            let legendHtml = '';
+            categories.forEach((c, i) => {
+                if (c.currentSpent > 0) {
+                    const percent = ((c.currentSpent / totalSpent) * 100).toFixed(1);
+                    legendHtml += `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div style="width:15px; height:15px; background:${colors[i % colors.length]}; border-radius:3px;"></div>
+                                <span>${this.utils.escapeHTML(c.name)}</span>
+                            </div>
+                            <span style="font-weight:600;">${this.utils.fmt(c.currentSpent)} (${percent}%)</span>
+                        </div>
+                    `;
+                }
+            });
+            legend.innerHTML = legendHtml;
+        },
+        
+        // --- 4. DATA LOGIC (Initializers) ---
+        
+        initUberDay() {
+            const todayStr = this.utils.getToday();
+            if (this.state.uber.today.date !== todayStr) {
+                if (this.state.uber.today.date && (this.state.uber.today.rides.length > 0 || this.state.uber.today.generalExpenses.length > 0)) {
+                    this.state.uber.archive.push(this.state.uber.today);
+                }
+                this.state.uber.today = {
+                    date: todayStr, netProfitToday: 0,
+                    rides: [], generalExpenses: []
+                };
+                this.debouncedSave();
+            }
+        },
+        
+        initSalaryMonth() {
+            const today = new Date();
+            const { salaryStartDay } = this.config;
+            const { lastReset } = this.state.salary;
+            const lastResetDate = new Date(lastReset.year, lastReset.month, 1); 
+            let lastSalaryDayDate = new Date(today.getFullYear(), today.getMonth(), salaryStartDay);
+            if (today < lastSalaryDayDate) {
+                lastSalaryDayDate.setMonth(lastSalaryDayDate.getMonth() - 1);
+            }
+            if (lastResetDate.getFullYear() < lastSalaryDayDate.getFullYear() || 
+                (lastResetDate.getFullYear() === lastSalaryDayDate.getFullYear() && lastResetDate.getMonth() < lastSalaryDayDate.getMonth())) 
+            {
+                this.state.salary.categories = this.state.salary.categories.map(cat => ({ ...cat, currentSpent: 0 }));
+                this.state.salary.oneTimeIncomes = [];
+                this.state.salary.expectedIncomeIds = this.state.incomeTemplates.map(src => src.id);
+                this.state.salary.lastReset = { year: lastSalaryDayDate.getFullYear(), month: lastSalaryDayDate.getMonth() };
+                
+                this.state.sinkingFunds.forEach(fund => {
+                    if (fund.linkedCategoryId) {
+                        const cat = this.state.salary.categories.find(c => c.id === fund.linkedCategoryId);
+                        if (cat) {
+                            cat.monthlyBudget = fund.monthlyAmount;
+                        }
+                    }
+                });
+                
+                this.debouncedSave();
+                this.utils.show('تم تصفير الميزانية لبداية الشهر المالي الجديد!', 'success');
+            }
+        },
+
+        // --- 5. EVENT HANDLERS (Controllers) ---
+        
+        handlers: {
+            
+            switchTab(event) {
+                const targetButton = event.target.closest('.tab-link');
+                if (!targetButton) return;
+                event.preventDefault();
+                const targetId = targetButton.dataset.target;
+                document.querySelectorAll('.tab-link').forEach(l => l.setAttribute('aria-selected', 'false'));
+                targetButton.setAttribute('aria-selected', 'true');
+                document.querySelectorAll('.content-section').forEach(s => {
+                    s.classList.remove('active');
+                    s.setAttribute('aria-hidden', 'true');
+                });
+                const targetSection = App.utils.qs(targetId);
+                targetSection.classList.add('active');
+                targetSection.setAttribute('aria-hidden', 'false');
+                if (targetId === '#stats') {
+                    App.renderStats();
+                }
+            },
+            
+            addGoal(e) {
+                const btn = e.target; btn.disabled = true;
+                const name = App.domCache.goalName.value.trim();
+                const target = +App.domCache.goalAmount.value;
+                const current = +App.domCache.currentSavings.value || 0;
+                const dueDate = App.domCache.goalDueDate.value;
+                if (!name) return App.utils.showError(btn, 'أدخل اسم الهدف.');
+                if (App.state.goals.find(g => g.name === name)) return App.utils.showError(btn, 'هذا الهدف موجود مسبقاً.');
+                if (!Number.isFinite(target) || target <= 0) return App.utils.showError(btn, 'أدخل مبلغ مستهدف صحيح (أكبر من صفر).');
+                if (!Number.isFinite(current) || current < 0) return App.utils.showError(btn, 'أدخل مبلغ حالي صحيح (صفر أو أكثر).');
+                const newGoal = { id: Date.now() + '', name, target, current, dueDate };
+                App.state.goals.push(newGoal);
+                App.debouncedSave();
+                if (App.state.goals.length === 1) {
+                    App.renderGoals(); 
+                } else {
+                    const goalEl = App.builders.goalCard(newGoal, true);
+                    App.domCache.goalsContainer.insertAdjacentHTML('beforeend', goalEl);
+                }
+                App.domCache.goalName.value = '';
+                App.domCache.goalAmount.value = '';
+                App.domCache.currentSavings.value = '';
+                App.domCache.goalDueDate.value = '';
+                App.utils.show('تم إضافة الهدف ✅', 'success');
+                btn.disabled = false;
+            },
+            
+            handleGoalClick(e) {
+                const card = e.target.closest('.card-goal');
+                if (!card) return;
+                const id = card.dataset.id;
+                
+                if (e.target.matches('.btn-edit-goal')) {
+                    const goal = App.state.goals.find(g => g.id === id);
+                    if (goal) {
+                        const newName = prompt('تعديل اسم الهدف:', goal.name);
+                        if (newName && newName.trim()) {
+                            goal.name = newName.trim();
+                            App.debouncedSave();
+                            App.renderGoals();
+                            App.utils.show('تم تعديل الهدف', 'success');
+                        }
+                    }
+                }
+                
+                if (e.target.matches('.btn-delete-goal')) {
+                    if (confirm('حذف الهدف؟')) {
+                        App.state.goals = App.state.goals.filter(g => g.id !== id);
+                        App.debouncedSave();
+                        card.remove();
+                        if (App.state.goals.length === 0) App.renderGoals();
+                        App.utils.show('تم الحذف', 'success');
+                    }
+                }
+                if (e.target.matches('.btn-update-amount')) {
+                    const amountInput = card.querySelector('.add-amount-input');
+                    const amount = +amountInput.value;
+                    if (!Number.isFinite(amount) || amount <= 0) return App.utils.showError(null, 'أدخل مبلغ صحيح للإضافة.');
+                    const goal = App.state.goals.find(g => g.id === id);
+                    if (goal) {
+                        goal.current += amount;
+                        App.debouncedSave();
+                        amountInput.value = '';
+                        const p = goal.target > 0 ? ((goal.current / goal.target) * 100) : 0;
+                        card.querySelector('.current-value').textContent = App.utils.fmt(goal.current);
+                        card.querySelector('.remaining-value').textContent = App.utils.fmt(goal.target - goal.current);
+                        card.querySelector('.percent-value').textContent = `${p.toFixed(1)}%`;
+                        card.querySelector('.progress-bar div').style.width = `${Math.min(100, p)}%`;
+                        App.utils.show('تم تحديث المبلغ ✅', 'success');
+                    }
+                }
+            },
+            
+            // --- Salary Handlers ---
+            addIncomeTemplate(e) {
+                const btn = e.target; btn.disabled = true;
+                const nameInput = App.domCache.newIncomeSource;
+                const amountInput = App.domCache.newIncomeAmount;
+                const name = nameInput.value.trim();
+                const amount = +amountInput.value;
+                if (!name) return App.utils.showError(btn, 'أدخل اسم المصدر');
+                if (App.state.incomeTemplates.find(src => src.name === name)) return App.utils.showError(btn, 'هذا المصدر موجود مسبقاً.');
+                if (!Number.isFinite(amount) || amount <= 0) return App.utils.showError(btn, 'أدخل مبلغ صحيح.');
+                const newSource = { id: Date.now() + '', name, amount };
+                App.state.incomeTemplates.push(newSource);
+                App.state.salary.expectedIncomeIds.push(newSource.id);
+                App.debouncedSave();
+                App.renderIncomeTemplates();
+                App.renderSalary();
+                nameInput.value = '';
+                amountInput.value = '';
+                App.utils.show('تم إضافة مصدر الدخل المتكرر', 'success');
+                btn.disabled = false;
+            },
+
+            handleIncomeTemplateClick(e) {
+                const item = e.target.closest('.list-item');
+                if (!item) return;
+                const id = item.dataset.id;
+                
+                if (e.target.matches('.btn-edit-income')) {
+                    const source = App.state.incomeTemplates.find(src => src.id === id);
+                    if (source) {
+                        const newName = prompt('تعديل اسم المصدر:', source.name);
+                        const newAmountStr = prompt('تعديل المبلغ:', source.amount);
+                        let changed = false;
+                        if (newName && newName.trim()) {
+                            source.name = newName.trim();
+                            changed = true;
+                        }
+                        if (newAmountStr) {
+                            const newAmount = +newAmountStr;
+                            if (Number.isFinite(newAmount) && newAmount > 0) {
+                                source.amount = newAmount;
+                                changed = true;
+                            } else {
+                                App.utils.showError(null, 'المبلغ غير صالح.');
+                            }
+                        }
+                        if (changed) {
+                            App.debouncedSave();
+                            App.renderIncomeTemplates();
+                            App.renderSalary();
+                            App.utils.show('تم تعديل المصدر', 'success');
+                        }
+                    }
+                }
+
+                if (e.target.matches('.btn-delete-income')) {
+                    if (confirm('حذف مصدر الدخل؟')) {
+                        App.state.incomeTemplates = App.state.incomeTemplates.filter(src => src.id !== id);
+                        App.state.salary.expectedIncomeIds = App.state.salary.expectedIncomeIds.filter(i => i !== id);
+                        App.debouncedSave();
+                        item.remove();
+                        if (App.state.incomeTemplates.length === 0) App.renderIncomeTemplates();
+                        App.renderSalary();
+                        App.utils.show('تم حذف المصدر', 'success');
+                    }
+                }
+            },
+            
+            handleIncomeToggle(e) {
+                const item = e.target.closest('.income-list-item');
+                if (!item) return;
+                
+                if(e.target.matches('.income-expected-checkbox')) {
+                    const id = item.dataset.id;
+                    const isChecked = e.target.checked;
+                    if (isChecked) {
+                        if (!App.state.salary.expectedIncomeIds.includes(id)) {
+                            App.state.salary.expectedIncomeIds.push(id);
+                        }
+                    } else {
+                        App.state.salary.expectedIncomeIds = App.state.salary.expectedIncomeIds.filter(i => i !== id);
+                    }
+                    App.debouncedSave();
+                    App.renderSalary();
+                }
+                
+                if(e.target.matches('.btn-delete-onetime')) {
+                    const id = item.dataset.id;
+                    if (confirm('حذف هذا الدخل الإضافي؟')) {
+                        App.state.salary.oneTimeIncomes = App.state.salary.oneTimeIncomes.filter(src => src.id !== id);
+                        App.debouncedSave();
+                        App.renderSalary();
+                        App.utils.show('تم حذف الدخل الإضافي', 'success');
+                    }
+                }
+            },
+            
+            addOneTimeIncome(e) {
+                const btn = e.target; btn.disabled = true;
+                const nameInput = App.domCache.oneTimeIncomeName;
+                const amountInput = App.domCache.oneTimeIncomeAmount;
+                const name = nameInput.value.trim();
+                const amount = +amountInput.value;
+                if (!name) return App.utils.showError(btn, 'أدخل اسم المصدر');
+                if (!Number.isFinite(amount) || amount <= 0) return App.utils.showError(btn, 'أدخل مبلغ صحيح.');
+                const newIncome = { id: Date.now() + '', name, amount };
+                App.state.salary.oneTimeIncomes.push(newIncome);
+                App.debouncedSave();
+                App.renderSalary();
+                nameInput.value = '';
+                amountInput.value = '';
+                App.utils.show('تم إضافة الدخل الإضافي', 'success');
+                btn.disabled = false;
+            },
+
+            addSalaryCategory(e) {
+                const btn = e.target; btn.disabled = true;
+                const nameInput = App.domCache.newCategoryName;
+                const name = nameInput.value.trim();
+                if (!name) return App.utils.showError(btn, 'أدخل اسم للفئة');
+                if (App.state.salary.categories.find(c => c.name === name)) return App.utils.showError(btn, 'هذه الفئة موجودة مسبقاً.');
+                const newCategory = { id: Date.now() + '', name, monthlyBudget: 0, currentSpent: 0, isSinkingFund: false };
+                App.state.salary.categories.push(newCategory);
+                App.debouncedSave();
+                if (App.state.salary.categories.length === 1) {
+                    App.renderSalary();
+                } else {
+                    const catEl = App.builders.salaryTrackerCard(newCategory, true);
+                    App.domCache.budgetTrackerContainer.insertAdjacentHTML('beforeend', catEl);
+                }
+                App.renderSalary();
+                nameInput.value = '';
+                App.utils.show('تم إضافة الفئة', 'success');
+                btn.disabled = false;
+            },
+
+            handleBudgetClick(e) {
+                const card = e.target.closest('.salary-tracker-card');
+                if (!card) return;
+                const id = card.dataset.id;
+                const category = App.state.salary.categories.find(c => c.id === id);
+                if (!category) return;
+                
+                if (e.target.matches('.btn-edit-category')) {
+                    if(category.isSinkingFund) return App.utils.showError(null, 'لا يمكن تعديل اسم فئة مرتبطة بصندوق. عدل الصندوق نفسه.');
+                    const newName = prompt('تعديل اسم الفئة:', category.name);
+                    if (newName && newName.trim()) {
+                        if (App.state.salary.categories.find(c => c.name === newName.trim() && c.id !== id)) {
+                           return App.utils.showError(null, 'هذا الاسم مستخدم لفئة أخرى.');
+                        }
+                        category.name = newName.trim();
+                        App.debouncedSave();
+                        App.renderSalary();
+                        App.utils.show('تم تعديل الفئة', 'success');
+                    }
+                }
+
+                if (e.target.matches('.btn-add-expense')) {
+                    const amountInput = card.querySelector('.spend-input');
+                    const amount = +amountInput.value;
+                    if (!Number.isFinite(amount) || amount <= 0) return App.utils.showError(null, 'أدخل مبلغ صحيح للمصروف');
+                    category.currentSpent += amount;
+                    App.debouncedSave();
+                    App.renderSalary(); 
+                    App.utils.show(`تم تسجيل ${App.utils.fmt(amount)}`, 'success');
+                }
+                if (e.target.matches('.budget-input')) {
+                    if(category.isSinkingFund) return;
+                    e.target.addEventListener('change', () => {
+                        const budget = +e.target.value;
+                        const validBudget = (Number.isFinite(budget) && budget >= 0) ? budget : 0;
+                        category.monthlyBudget = validBudget;
+                        App.debouncedSave();
+                        App.renderSalary();
+                    });
+                }
+                if (e.target.matches('.btn-delete-category')) {
+                    if(category.isSinkingFund) return App.utils.showError(null, 'لا يمكن حذف فئة مرتبطة بصندوق. احذف الصندوق أولاً.');
+                    if (confirm(`حذف فئة "${category.name}"؟`)) {
+                        App.state.salary.categories = App.state.salary.categories.filter(c => c.id !== id);
+                        App.debouncedSave();
+                        App.renderSalary();
+                        App.utils.show('تم حذف الفئة', 'success');
+                    }
+                }
+            },
+            
+            saveSalaryConfig(e) {
+                const btn = e.target; btn.disabled = true;
+                const day = +App.domCache.configSalaryDay.value;
+                if (!Number.isFinite(day) || day < 1 || day > 31) return App.utils.showError(btn, 'أدخل يوم صحيح في الشهر (بين 1 و 31).');
+                App.config.salaryStartDay = day;
+                App.saveConfig();
+                App.initSalaryMonth(); 
+                App.renderSalary();
+                App.utils.show('تم حفظ يوم الراتب', 'success');
+                btn.disabled = false;
+            },
+
+            addSinkingFund(e) {
+                const btn = e.target; btn.disabled = true;
+                const name = App.domCache.fundName.value.trim();
+                const target = +App.domCache.fundTarget.value;
+                const dueDate = App.domCache.fundDueDate.value;
+                
+                if (!name) return App.utils.showError(btn, 'أدخل اسم الصندوق');
+                if (App.state.sinkingFunds.find(f => f.name === name)) return App.utils.showError(btn, 'هذا الصندوق موجود مسبقاً.');
+                if (!Number.isFinite(target) || target <= 0) return App.utils.showError(btn, 'أدخل مبلغ صحيح.');
+                if (!dueDate) return App.utils.showError(btn, 'أدخل تاريخ مستهدف.');
+                
+                const today = new Date();
+                const due = new Date(dueDate);
+                if (due <= today) return App.utils.showError(btn, 'التاريخ المستهدف يجب أن يكون في المستقبل.');
+                
+                const monthsDiff = Math.max(1, Math.round((due - today) / (1000 * 60 * 60 * 24 * 30.44)));
+                const monthlyAmount = Math.ceil(target / monthsDiff);
+                
+                const newCategory = {
+                    id: Date.now() + '_cat',
+                    name: `🛡️ ${name}`,
+                    monthlyBudget: monthlyAmount,
+                    currentSpent: 0,
+                    isSinkingFund: true
+                };
+                App.state.salary.categories.push(newCategory);
+                
+                const newFund = {
+                    id: Date.now() + '',
+                    name,
+                    target,
+                    current: 0,
+                    dueDate,
+                    monthlyAmount,
+                    linkedCategoryId: newCategory.id
+                };
+                App.state.sinkingFunds.push(newFund);
+                
+                App.debouncedSave();
+                App.renderSinkingFunds();
+                App.renderSalary();
+                
+                App.domCache.fundName.value = '';
+                App.domCache.fundTarget.value = '';
+                App.domCache.fundDueDate.value = '';
+                
+                App.utils.show(`تم إنشاء صندوق! احفظ ${App.utils.fmt(monthlyAmount)} شهرياً`, 'success');
+                btn.disabled = false;
+            },
+
+            handleFundClick(e) {
+                const card = e.target.closest('.sinking-fund-card');
+                if (!card) return;
+                const id = card.dataset.id;
+                
+                if (e.target.matches('.btn-edit-fund')) {
+                    const fund = App.state.sinkingFunds.find(f => f.id === id);
+                    if (fund) {
+                        const newName = prompt('تعديل اسم الصندوق:', fund.name);
+                        if (newName && newName.trim()) {
+                            fund.name = newName.trim();
+                            const linkedCat = App.state.salary.categories.find(c => c.id === fund.linkedCategoryId);
+                            if (linkedCat) {
+                                linkedCat.name = `🛡️ ${newName.trim()}`;
+                            }
+                            App.debouncedSave();
+                            App.renderSinkingFunds();
+                            App.renderSalary();
+                            App.utils.show('تم تعديل الصندوق', 'success');
+                        }
+                    }
+                }
+
+                if (e.target.matches('.btn-delete-fund')) {
+                    if (confirm('حذف الصندوق والفئة المرتبطة به؟')) {
+                        const fund = App.state.sinkingFunds.find(f => f.id === id);
+                        if (fund) {
+                            App.state.salary.categories = App.state.salary.categories.filter(c => c.id !== fund.linkedCategoryId);
+                            App.state.sinkingFunds = App.state.sinkingFunds.filter(f => f.id !== id);
+                            App.debouncedSave();
+                            App.renderSinkingFunds();
+                            App.renderSalary();
+                            App.utils.show('تم حذف الصندوق', 'success');
+                        }
+                    }
+                }
+
+                if (e.target.matches('.btn-add-to-fund')) {
+                    const amountInput = card.querySelector('.fund-add-input');
+                    const amount = +amountInput.value;
+                    if (!Number.isFinite(amount) || amount <= 0) return App.utils.showError(null, 'أدخل مبلغ صحيح.');
+                    
+                    const fund = App.state.sinkingFunds.find(f => f.id === id);
+                    if (fund) {
+                        fund.current = Math.min(fund.target, fund.current + amount);
+                        App.debouncedSave();
+                        App.renderSinkingFunds();
+                        App.utils.show('تم إضافة المبلغ للصندوق ✅', 'success');
+                    }
+                }
+            },
+
+            addUberRide(e) {
+                const btn = e.target; btn.disabled = true;
+                const grossIncome = +App.domCache.rideIncome.value;
+                const expense = +App.domCache.rideExpense.value || 0;
+                if (!Number.isFinite(grossIncome) || grossIncome <= 0) return App.utils.showError(btn, 'أدخل دخل إجمالي صحيح للمشوار.');
+                if (!Number.isFinite(expense) || expense < 0) return App.utils.showError(btn, 'أدخل مصروف إضافي صحيح (صفر أو أكثر).');
+                const commission = grossIncome * App.config.uberCommission;
+                const net = grossIncome - commission - expense;
+                const newRide = { id: Date.now() + '', grossIncome, commission, expense, net };
+                App.state.uber.today.rides.push(newRide);
+                App.debouncedSave();
+                if (App.state.uber.today.rides.length === 1) App.domCache.ridesHistoryContainer.innerHTML = '<h4 style="color:var(--primary-color)">المشاوير:</h4>';
+                const rideEl = App.builders.uberRideItem(newRide, App.state.uber.today.rides.length - 1, true);
+                App.domCache.ridesHistoryContainer.insertAdjacentHTML('beforeend', rideEl);
+                App.renderUber(); 
+                App.domCache.rideIncome.value = '';
+                App.domCache.rideExpense.value = '';
+                App.utils.show(`تم تسجيل المشوار! صافي: ${App.utils.fmt(net)}`, 'success');
+                btn.disabled = false;
+            },
+            
+            addGeneralExpense(e) {
+                const btn = e.target; btn.disabled = true;
+                const amount = +App.domCache.generalExpenseAmount.value;
+                const name = App.domCache.generalExpenseName.value.trim() || 'مصروف عام';
+                if (!Number.isFinite(amount) || amount <= 0) return App.utils.showError(btn, 'أدخل مبلغ صحيح للمصروف.');
+                const newExpense = { id: Date.now() + '', name, amount };
+                App.state.uber.today.generalExpenses.push(newExpense);
+                App.debouncedSave();
+                if (App.state.uber.today.generalExpenses.length === 1) App.domCache.generalExpensesHistoryContainer.innerHTML = '<h4 style="color:var(--primary-color)">مصروفات عامة:</h4>';
+                const expenseEl = App.builders.uberExpenseItem(newExpense, App.state.uber.today.generalExpenses.length - 1, true);
+                App.domCache.generalExpensesHistoryContainer.insertAdjacentHTML('beforeend', expenseEl);
+                App.renderUber(); 
+                App.domCache.generalExpenseAmount.value = '';
+                App.domCache.generalExpenseName.value = '';
+                App.utils.show(`تم تسجيل مصروف ${App.utils.fmt(amount)}`, 'success');
+                btn.disabled = false;
+            },
+            
+            handleUberHistoryClick(e) {
+                const item = e.target.closest('.list-item');
+                if (!item) return;
+                const id = item.dataset.id;
+                if (e.target.matches('.btn-delete-ride')) {
+                    App.state.uber.today.rides = App.state.uber.today.rides.filter(r => r.id !== id);
+                    App.debouncedSave();
+                    App.renderUber(); 
+                    App.utils.show('تم حذف المشوار', 'success');
+                }
+                if (e.target.matches('.btn-delete-expense')) {
+                    App.state.uber.today.generalExpenses = App.state.uber.today.generalExpenses.filter(e => e.id !== id);
+                    App.debouncedSave();
+                    App.renderUber(); 
+                    App.utils.show('تم حذف المصروف', 'success');
+                }
+            },
+            
+            endUberDay() {
+                const net = App.state.uber.today.netProfitToday;
+                if (confirm(`إنهاء يوم أوبر؟ الصافي ${App.utils.fmt(net)}. سيتم أرشفة اليوم وبدء يوم جديد.`)) {
+                    App.initUberDay(); 
+                    App.renderUber();
+                    App.utils.show('تم إنهاء وأرشفة اليوم. يوم جديد سعيد!', 'success');
+                }
+            },
+            
+            saveUberConfig(e) {
+                const btn = e.target; btn.disabled = true;
+                const goal = +App.domCache.configUberGoal.value;
+                const commission = +App.domCache.configUberCommission.value;
+                if (!Number.isFinite(goal) || goal <= 0) return App.utils.showError(btn, 'أدخل هدف يومي صحيح (أكبر من صفر).');
+                if (!Number.isFinite(commission) || commission <= 0 || commission >= 1) return App.utils.showError(btn, 'أدخل نسبة عمولة صحيحة (بين 0.01 و 0.99).');
+                App.config.uberGoal = goal;
+                App.config.uberCommission = commission;
+                App.saveConfig();
+                App.renderUber();
+                App.utils.show('تم حفظ إعدادات أوبر', 'success');
+                btn.disabled = false;
+            },
+
+            addProject(e) {
+                const btn = e.target; btn.disabled = true;
+                const nameInput = App.domCache.projectName;
+                const name = nameInput.value.trim();
+                if (!name) return App.utils.showError(btn, 'أدخل اسم للمشروع.');
+                if (App.state.projects.find(p => p.name === name)) return App.utils.showError(btn, 'هذا المشروع موجود مسبقاً.');
+                const newProject = { id: Date.now() + '', name, tasks: [] };
+                App.state.projects.push(newProject);
+                App.debouncedSave();
+                if (App.state.projects.length === 1) {
+                    App.renderProjectsAndTasks(); 
+                } else {
+                    const projectEl = App.builders.projectCard(newProject, true);
+                    App.domCache.projectsContainer.insertAdjacentHTML('beforeend', projectEl);
+                    const optionEl = `<option value="${newProject.id}">${App.utils.escapeHTML(newProject.name)}</option>`;
+                    App.domCache.taskProjectSelect.insertAdjacentHTML('beforeend', optionEl);
+                }
+                App.lastSelectedProjectId = newProject.id;
+                App.domCache.taskProjectSelect.value = newProject.id;
+                App.domCache.addTaskBtn.disabled = false;
+                nameInput.value = '';
+                App.utils.show('تم إضافة المشروع ✅', 'success');
+                btn.disabled = false;
+            },
+
+            addTask(e) {
+                const btn = e.target; btn.disabled = true;
+                const projectId = App.domCache.taskProjectSelect.value;
+                const name = App.domCache.taskName.value.trim();
+                const dueDate = App.domCache.taskDueDate.value;
+                const priority = App.domCache.taskPriority.value;
+                if (!projectId) return App.utils.showError(btn, 'الرجاء اختيار مشروع أولاً.');
+                if (!name || !dueDate) return App.utils.showError(btn, 'أدخل اسم وتاريخ للمهمة.');
+                const project = App.state.projects.find(p => p.id === projectId);
+                if (project) {
+                    const newTask = { id: Date.now() + '', name, dueDate, priority, completed: false };
+                    project.tasks.push(newTask);
+                    App.debouncedSave();
+                    const projectCard = App.utils.qs(`.project-card[data-project-id="${projectId}"]`);
+                    const tasksContainer = projectCard.querySelector(`.tasks-list-for-project-${projectId}`);
+                    let tasksHtml = '';
+                    const sortedTasks = App.utils.sortTasks(project.tasks);
+                    sortedTasks.forEach(t => {
+                        tasksHtml += App.builders.taskCard(t, projectId, true);
+                    });
+                    tasksContainer.innerHTML = tasksHtml;
+                    App.domCache.taskName.value = '';
+                    App.domCache.taskDueDate.value = '';
+                    App.domCache.taskPriority.value = 'medium';
+                    App.utils.show('تم إضافة المهمة ✅', 'success');
+                } else {
+                    App.utils.showError(btn, 'خطأ: لم يتم العثور على المشروع.');
+                }
+                btn.disabled = false;
+            },
+            
+            handleProjectClick(e) {
+                const projectId = e.target.dataset.projectId;
+                const taskId = e.target.dataset.taskId;
+                
+                if (e.target.matches('.btn-edit-project')) {
+                    const project = App.state.projects.find(p => p.id === projectId);
+                    if (project) {
+                        const newName = prompt('تعديل اسم المشروع:', project.name);
+                        if (newName && newName.trim()) {
+                            if (App.state.projects.find(p => p.name === newName.trim() && p.id !== projectId)) {
+                                return App.utils.showError(null, 'هذا الاسم مستخدم لمشروع آخر.');
+                            }
+                            project.name = newName.trim();
+                            App.debouncedSave();
+                            App.renderProjectsAndTasks();
+                            App.utils.show('تم تعديل المشروع', 'success');
+                        }
+                    }
+                }
+                
+                if (e.target.matches('.btn-edit-task')) {
+                    const project = App.state.projects.find(p => p.id === projectId);
+                    if (project) {
+                        const task = project.tasks.find(t => t.id === taskId);
+                        if (task) {
+                            const newName = prompt('تعديل اسم المهمة:', task.name);
+                            if (newName && newName.trim()) {
+                                task.name = newName.trim();
+                                App.debouncedSave();
+                                e.target.closest('.task-card').querySelector('.task-name').textContent = newName.trim();
+                                App.utils.show('تم تعديل المهمة', 'success');
+                            }
+                        }
+                    }
+                }
+
+                if (e.target.matches('.btn-delete-project') && projectId) {
+                    if (App.state.projects.length === 1) return App.utils.showError(null, 'لا يمكن حذف آخر مشروع.');
+                    const project = App.state.projects.find(p => p.id === projectId);
+                    if (confirm(`حذف مشروع "${project.name}" وكل مهامه؟`)) {
+                        App.state.projects = App.state.projects.filter(p => p.id !== projectId);
+                        App.debouncedSave();
+                        e.target.closest('.project-card').remove();
+                        App.utils.qs(`#taskProjectSelect option[value="${projectId}"]`).remove();
+                        if (App.lastSelectedProjectId === projectId) {
+                            App.lastSelectedProjectId = App.state.projects[0].id;
+                            App.domCache.taskProjectSelect.value = App.lastSelectedProjectId;
+                        }
+                        App.utils.show('تم حذف المشروع', 'success');
+                    }
+                }
+                
+                if (e.target.matches('.btn-delete-task') && projectId && taskId) {
+                    if (confirm('حذف المهمة؟')) {
+                        const project = App.state.projects.find(p => p.id === projectId);
+                        if (project) {
+                            project.tasks = project.tasks.filter(t => t.id !== taskId);
+                            App.debouncedSave();
+                            const taskCard = e.target.closest('.task-card');
+                            taskCard.remove();
+                            if (project.tasks.length === 0) {
+                                App.utils.qs(`.tasks-list-for-project-${projectId}`).innerHTML = '<p class="empty-state" style="padding:10px;">لا توجد مهام في هذا المشروع.</p>';
+                            }
+                            App.utils.show('تم حذف المهمة', 'success');
+                        }
+                    }
+                }
+                
+                if (e.target.matches('.task-checkbox') && projectId && taskId) {
+                    const project = App.state.projects.find(p => p.id === projectId);
+                    if (project) {
+                        const task = project.tasks.find(t => t.id === taskId);
+                        if (task) {
+                            task.completed = !task.completed;
+                            App.debouncedSave();
+                            const projectCard = App.utils.qs(`.project-card[data-project-id="${projectId}"]`);
+                            const tasksContainer = projectCard.querySelector(`.tasks-list-for-project-${projectId}`);
+                            let tasksHtml = '';
+                            const sortedTasks = App.utils.sortTasks(project.tasks);
+                            sortedTasks.forEach(t => {
+                                tasksHtml += App.builders.taskCard(t, projectId, true);
+                            });
+                            tasksContainer.innerHTML = tasksHtml;
+                        }
+                    }
+                }
+            },
+            
+            addHabit(e) {
+                const btn = e.target; btn.disabled = true;
+                const name = App.domCache.habitName.value.trim();
+                if (!name) return App.utils.showError(btn, 'أدخل اسم العادة');
+                if (App.state.habits.find(h => h.name === name)) return App.utils.showError(btn, 'هذه العادة موجودة مسبقاً.');
+                const newHabit = {
+                    id: Date.now() + '', name,
+                    completedDays: [],
+                    failedDays: [],
+                    lastWeekStart: App.utils.getWeekStart(new Date()).getTime()
+                };
+                App.state.habits.push(newHabit);
+                App.debouncedSave();
+                if (App.state.habits.length === 1) App.domCache.habitsContainer.innerHTML = ''; 
+                const habitEl = App.builders.habitCard(newHabit, true);
+                App.domCache.habitsContainer.insertAdjacentHTML('beforeend', habitEl);
+                App.domCache.habitName.value = '';
+                App.utils.show('تم إضافة العادة ✅', 'success');
+                btn.disabled = false;
+            },
+            
+            handleHabitClick(e) {
+                const id = e.target.dataset.id;
+                if (!id) return;
+                const card = e.target.closest('.habit-card');
+                
+                if (e.target.matches('.btn-edit-habit')) {
+                    const habit = App.state.habits.find(h => h.id === id);
+                    if (habit) {
+                        const newName = prompt('تعديل اسم العادة:', habit.name);
+                        if (newName && newName.trim()) {
+                            if (App.state.habits.find(h => h.name === newName.trim() && h.id !== id)) {
+                                return App.utils.showError(null, 'هذا الاسم مستخدم لعادة أخرى.');
+                            }
+                            habit.name = newName.trim();
+                            App.debouncedSave();
+                            card.querySelector('h3').textContent = newName.trim();
+                            App.utils.show('تم تعديل العادة', 'success');
+                        }
+                    }
+                }
+
+                if (e.target.matches('.btn-delete-habit')) {
+                    if (confirm('حذف العادة؟')) {
+                        App.state.habits = App.state.habits.filter(h => h.id !== id);
+                        App.debouncedSave();
+                        card.remove(); 
+                        if (App.state.habits.length === 0) App.renderHabits();
+                        App.utils.show('تم الحذف', 'success');
+                    }
+                }
+                if (e.target.matches('.day-box')) {
+                    const day = +e.target.dataset.day;
+                    const habit = App.state.habits.find(h => h.id === id);
+                    if (habit) {
+                        const completedIndex = habit.completedDays.indexOf(day);
+                        const failedIndex = habit.failedDays.indexOf(day);
+                        let newState = 'pending';
+                        let newContent = `<span class="day-name">${App.utils.getDayName(day)}</span>`;
+                        let newAriaLabel = '';
+                        if (completedIndex > -1) { 
+                            habit.completedDays.splice(completedIndex, 1);
+                            habit.failedDays.push(day);
+                            newState = 'failed';
+                            newContent = '×';
+                            newAriaLabel = `${App.utils.getDayName(day)}: لم تنجز`;
+                        } else if (failedIndex > -1) {
+                            habit.failedDays.splice(failedIndex, 1);
+                            newState = 'pending';
+                            newAriaLabel = `${App.utils.getDayName(day)}: غير مسجل`;
+                        } else {
+                            habit.completedDays.push(day);
+                            newState = 'completed';
+                            newContent = `<span class="day-name">${App.utils.getDayName(day)}</span>`;
+                            newAriaLabel = `${App.utils.getDayName(day)}: مكتمل`;
+                        }
+                        App.debouncedSave();
+                        e.target.className = `day-box ${newState}`;
+                        e.target.innerHTML = newContent;
+                        e.target.setAttribute('aria-label', newAriaLabel);
+                        const count = habit.completedDays.length;
+                        card.querySelector('.habit-streak').textContent = `الإنجاز: ${count}/7`;
+                        card.querySelector('.progress-bar div').style.width = `${(count / 7 * 100)}%`;
+                    }
+                }
+            },
+            
+            clearUberArchive() {
+                if (confirm('هل أنت متأكد من حذف جميع بيانات أرشيف أوبر؟ لا يمكن التراجع عن هذا.')) {
+                    App.state.uber.archive = [];
+                    App.debouncedSave();
+                    App.renderUberArchive();
+                    App.utils.show('تم تصفير الأرشيف', 'success');
+                }
+            },
+            
+            showArchiveDetail(e) {
+                const item = e.target.closest('.archive-item');
+                if (!item) return;
+                const date = item.dataset.date;
+                const day = App.state.uber.archive.find(d => d.date === date);
+                if (!day) return;
+                let html = `<h4 style="color:var(--primary-color)">المشاوير:</h4>`;
+                if (day.rides.length === 0) { html += '<p>لا توجد مشاوير مسجلة</p>'; }
+                day.rides.forEach((r, i) => { html += `<div class="list-item"><span><b>#${i+1}</b> - إجمالي: ${App.utils.fmt(r.grossIncome)} | مصروف: ${App.utils.fmt(r.expense)} | صافي: <b>${App.utils.fmt(r.net)}</b></span></div>`; });
+                html += `<hr style="margin:15px 0;"><h4 style="color:var(--primary-color)">مصروفات عامة:</h4>`;
+                if (day.generalExpenses.length === 0) { html += '<p>لا توجد مصروفات مسجلة</p>'; }
+                day.generalExpenses.forEach(e => { html += `<div class="list-item"><span>${App.utils.escapeHTML(e.name)}: <b>-${App.utils.fmt(e.amount)}</b></span></div>`; });
+                html += `<hr style="margin:15px 0;"><h3 style="text-align:left; color: #008000;">إجمالي الصافي: ${App.utils.fmt(day.netProfitToday)}</h3>`;
+                App.domCache.modalTitle.textContent = `تفاصيل يوم: ${date}`;
+                App.domCache.modalBody.innerHTML = html;
+                App.domCache.archiveModal.style.display = 'flex';
+            },
+
+            exportData() {
+                const data = { state: App.state, config: App.config };
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+                a.download = `life_dashboard_backup_v10_${new Date().toLocaleDateString('en-CA')}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                App.utils.show('تم تصدير البيانات! 📥', 'success');
+            },
+            
+            importData(event) {
+                const file = event.target.files[0];
+                if (!file || !confirm('سيتم مسح البيانات الحالية واستبدالها ببيانات الملف. استمرار؟')) {
+                    event.target.value = null; return;
+                }
+                const reader = new FileReader();
+                reader.onload = e => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (data.state && data.config) {
+                            App.state = data.state;
+                            App.config = data.config;
+                            localStorage.setItem(App.NEW_KEYS.state, JSON.stringify(App.state));
+                            localStorage.setItem(App.NEW_KEYS.config, JSON.stringify(App.config));
+                            location.reload();
+                        } else {
+                            throw new Error('ملف غير صالح.');
+                        }
+                    } catch (err) {
+                        App.utils.show(`خطأ في استيراد الملف: ${err.message}`, 'error');
+                    }
+                    event.target.value = null;
+                };
+                reader.readAsText(file);
+            },
+            
+            clearAllData() {
+                if (confirm('تحذير أخير: هل أنت متأكد من حذف جميع البيانات نهائياً؟')) {
+                    localStorage.clear();
+                    location.reload();
+                }
+            }
+        },
+        
+        // --- 6. HTML BUILDERS (For Selective DOM) ---
+        
+        builders: {
+            goalCard(g, asString = false) {
+                const p = g.target > 0 ? ((g.current / g.target) * 100) : 0;
+                const r = g.target - g.current;
+                let dueDateHtml = '';
+                if (g.dueDate) {
+                    const { text, isOverdue } = App.utils.getDaysRemaining(g.dueDate);
+                    dueDateHtml = `<p style="color: ${isOverdue ? 'var(--danger-color)' : 'var(--text-light)'}; font-size: 0.9em;">تاريخ مستهدف: ${g.dueDate} (باقي: ${text})</p>`;
+                }
+                const html = `
+                <div class="card card-goal" data-id="${g.id}">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <h3 class="editable-name">${App.utils.escapeHTML(g.name)}</h3>
+                        <button class="btn-icon btn-edit btn-edit-goal" aria-label="تعديل اسم الهدف">✏️</button>
+                    </div>
+                    ${dueDateHtml}
+                    <p>المستهدف: <span class="value">${App.utils.fmt(g.target)}</span></p>
+                    <p>الحالي: <span class="value current-value">${App.utils.fmt(g.current)}</span></p>
+                    <p class="big-stat percent-value" style="font-size:2em; color: var(--primary-color);">${p.toFixed(1)}%</p>
+                    <p style="font-weight: 600;">المتبقي: <span class="remaining-value">${App.utils.fmt(r)}</span></p>
+                    <div class="progress-bar"><div style="width:${Math.min(100, p)}%"></div></div>
+                    <hr style="margin:15px 0;border:none;border-top:1px solid #eee">
+                    <input type="number" class="add-amount-input" placeholder="إضافة مبلغ" min="1" style="padding:12px">
+                    <div class="btn-group">
+                        <button class="btn btn-primary btn-update-amount">إضافة</button>
+                        <button class="btn btn-danger btn-delete-goal" aria-label="حذف الهدف">حذف</button>
+                    </div>
+                </div>`;
+                return asString ? html : App.utils.stringToEl(html);
+            },
+            
+            incomeSourceItem(src, asString = false) {
+                const html = `
+                <div class="list-item" data-id="${src.id}">
+                    <span>
+                        <span class="list-item-name editable-name">${App.utils.escapeHTML(src.name)}</span>
+                        <span class="list-item-amount">${App.utils.fmt(src.amount)}</span>
+                    </span>
+                    <div>
+                        <button class="btn-icon btn-edit btn-edit-income" aria-label="تعديل المصدر">✏️</button>
+                        <button class="btn-icon btn-delete-income" aria-label="حذف المصدر">❌</button>
+                    </div>
+                </div>`;
+                return asString ? html : App.utils.stringToEl(html);
+            },
+
+            incomeExpectedItem(src, isExpected, asString = false) {
+                const html = `
+                <div class="income-list-item ${!isExpected ? 'not-expected' : ''}" data-id="${src.id}">
+                    <input type="checkbox" class="income-expected-checkbox" data-id="${src.id}" ${isExpected ? 'checked' : ''} aria-label="توقع استلام ${App.utils.escapeHTML(src.name)}">
+                    <div class="details">
+                        <span class="name">${App.utils.escapeHTML(src.name)}</span>
+                    </div>
+                    <span class="amount-display">${App.utils.fmt(src.amount)}</span>
+                </div>`;
+                return asString ? html : App.utils.stringToEl(html);
+            },
+            
+            oneTimeIncomeItem(src, asString = false) {
+                const html = `
+                <div class="income-list-item" data-id="${src.id}">
+                    <input type="checkbox" checked disabled>
+                    <div class="details">
+                        <span class="name">${App.utils.escapeHTML(src.name)} (إضافي)</span>
+                    </div>
+                    <span class="amount-display">${App.utils.fmt(src.amount)}</span>
+                    <button class="btn-icon btn-delete-onetime" aria-label="حذف الدخل الإضافي">❌</button>
+                </div>`;
+                return asString ? html : App.utils.stringToEl(html);
+            },
+
+            salaryTrackerCard(cat, asString = false) {
+                const remaining = cat.monthlyBudget - cat.currentSpent;
+                const html = `
+                <div class="card salary-tracker-card" data-id="${cat.id}" style="${cat.isSinkingFund ? 'border-right-color: var(--secondary-color);' : ''}">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <h4 class="editable-name">${App.utils.escapeHTML(cat.name)}</h4>
+                        <div>
+                            ${!cat.isSinkingFund ? `<button class="btn-icon btn-edit btn-edit-category" aria-label="تعديل الفئة">✏️</button>` : ''}
+                            ${!cat.isSinkingFund ? `<button class="btn-icon btn-delete-category" aria-label="حذف الفئة">❌</button>` : ''}
+                        </div>
+                    </div>
+                    <label>الميزانية المخصصة:</label>
+                    <input type="number" class="budget-input" value="${cat.monthlyBudget}" min="0" ${cat.isSinkingFund ? 'disabled' : ''}>
+                    <hr style="margin:10px 0; border:none; border-top:1px solid #f0f0f0;">
+                    <p class="salary-stat"><span class="label">المصروف:</span> <span class="value spent">${App.utils.fmt(cat.currentSpent)}</span></p>
+                    <p class="salary-stat"><span class="label">المتبقي:</span> <span class="value remaining ${remaining < 0 ? 'over' : ''}">${App.utils.fmt(remaining)}</span></p>
+                    <hr style="margin:10px 0; border:none; border-top:1px solid #f0f0f0;">
+                    <div class="btn-group">
+                        <input type="number" class="spend-input" placeholder="تسجيل مصروف" min="1" style="width: 60%; margin:0;">
+                        <button class="btn btn-primary btn-add-expense" style="width: 40%; margin:0;">سجل</button>
+                    </div>
+                </div>`;
+                return asString ? html : App.utils.stringToEl(html);
+            },
+
+            sinkingFundCard(f, asString = false) {
+                const p = f.target > 0 ? ((f.current / f.target) * 100) : 0;
+                const { text, isOverdue } = App.utils.getDaysRemaining(f.dueDate);
+                const html = `
+                <div class="card sinking-fund-card" data-id="${f.id}">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <h3 class="editable-name">🛡️ ${App.utils.escapeHTML(f.name)}</h3>
+                        <button class="btn-icon btn-edit btn-edit-fund" aria-label="تعديل الصندوق">✏️</button>
+                    </div>
+                    <p style="color: ${isOverdue ? 'var(--danger-color)' : 'var(--text-light)'};">التاريخ: ${f.dueDate} (${text})</p>
+                    <p>الهدف: <b>${App.utils.fmt(f.target)}</b></p>
+                    <p>المحفوظ: <b style="color:var(--secondary-color)">${App.utils.fmt(f.current)}</b></p>
+                    <p style="font-size:0.9em;color:var(--text-light);">الادخار الشهري: <b>${App.utils.fmt(f.monthlyAmount)}</b></p>
+                    <div class="progress-bar"><div style="width:${Math.min(100, p)}%"></div></div>
+                    <hr style="margin:10px 0;">
+                    <input type="number" class="fund-add-input" placeholder="إضافة للصندوق" min="1">
+                    <div class="btn-group">
+                        <button class="btn btn-primary btn-add-to-fund">إضافة</button>
+                        <button class="btn btn-danger btn-delete-fund">حذف</button>
+                    </div>
+                </div>`;
+                return asString ? html : App.utils.stringToEl(html);
+            },
+
+            uberRideItem(r, i, asString = false) {
+                const html = `<div class="list-item" data-id="${r.id}">
+                    <span><b>مشوار #${i + 1}</b> (إجمالي: ${App.utils.fmt(r.grossIncome)} | مصروف: ${App.utils.fmt(r.expense)} | صافي: <b style="color:${r.net > 0 ? '#008000' : 'var(--danger-color)'}">${App.utils.fmt(r.net)}</b>)</span> 
+                    <button class="btn-icon btn-delete-ride" aria-label="حذف المشوار">❌</button>
+                </div>`;
+                return asString ? html : App.utils.stringToEl(html);
+            },
+
+            uberExpenseItem(e, i, asString = false) {
+                const html = `<div class="list-item" data-id="${e.id}">
+                    <span><b>${App.utils.escapeHTML(e.name)}:</b> <b style="color:var(--danger-color);">- ${App.utils.fmt(e.amount)}</b></span>
+                    <button class="btn-icon btn-delete-expense" aria-label="حذف المصروف">❌</button>
+                </div>`;
+                return asString ? html : App.utils.stringToEl(html);
+            },
+            
+            uberArchiveItem(day, asString = false) {
+                const html = `
+                <div class="archive-item" data-date="${day.date}" role="button" aria-label="عرض تفاصيل يوم ${day.date}">
+                    <b>تاريخ: ${day.date}</b> | 
+                    الصافي: <span style="font-weight:bold; color:${day.netProfitToday > 0 ? '#008000' : 'var(--danger-color)'}">${App.utils.fmt(day.netProfitToday)}</span> | 
+                    (${day.rides.length} مشوار, ${day.generalExpenses.length} مصروف)
+                    <small style="display:block; color:#555;">(اضغط لعرض التفاصيل)</small>
+                </div>`;
+                return asString ? html : App.utils.stringToEl(html);
+            },
+
+            projectCard(p, asString = false) {
+                let tasksHtml = '';
+                const sortedTasks = App.utils.sortTasks(p.tasks);
+                if (sortedTasks.length === 0) {
+                    tasksHtml = '<p class="empty-state" style="padding:10px;">لا توجد مهام في هذا المشروع.</p>';
+                } else {
+                    sortedTasks.forEach(t => {
+                        tasksHtml += this.taskCard(t, p.id, true);
+                    });
+                }
+                const html = `
+                <div class="card project-card" data-project-id="${p.id}">
+                    <div class="project-header">
+                        <h3 class="editable-name">${App.utils.escapeHTML(p.name)}</h3>
+                        <div>
+                            <button class="btn-icon btn-edit btn-edit-project" data-project-id="${p.id}" aria-label="تعديل المشروع">✏️</button>
+                            <button class="btn btn-danger btn-delete-project" data-project-id="${p.id}" aria-label="حذف المشروع" style="width: auto; padding: 10px 15px; font-size: 0.9em; margin: 0;">حذف المشروع</button>
+                        </div>
+                    </div>
+                    <div class="tasks-list-for-project-${p.id}">
+                        ${tasksHtml}
+                    </div>
+                </div>`;
+                return asString ? html : App.utils.stringToEl(html);
+            },
+
+            taskCard(t, projectId, asString = false) {
+                const { text, isOverdue } = App.utils.getDaysRemaining(t.dueDate);
+                const tagClass = t.completed ? 'completed' : (isOverdue ? 'overdue' : '');
+                const priorityMap = { high: 'عالية 🔴', medium: 'متوسطة 🟠', low: 'منخفضة 🔵' };
+                const html = `
+                <div class="card task-card ${t.completed ? 'completed' : ''} ${isOverdue && !t.completed ? `overdue priority-${t.priority}` : `priority-${t.priority}`}" data-project-id="${projectId}" data-task-id="${t.id}">
+                    <div class="task-card-header">
+                        <input type="checkbox" class="task-checkbox" data-project-id="${projectId}" data-task-id="${t.id}" ${t.completed ? 'checked' : ''} style="width:20px;height:20px;margin:0 0 0 10px;" aria-label="إكمال المهمة">
+                        <h4 class="task-name editable-name ${t.completed ? 'completed' : ''}">${App.utils.escapeHTML(t.name)}</h4>
+                        <div>
+                            <button class="btn-icon btn-edit btn-edit-task" data-project-id="${projectId}" data-task-id="${t.id}" aria-label="تعديل المهمة">✏️</button>
+                            <button class="btn-icon btn-delete-task" data-project-id="${projectId}" data-task-id="${t.id}" aria-label="حذف المهمة">❌</button>
+                        </div>
+                    </div>
+                    <div class="task-card-footer">
+                        <span class="priority-badge ${t.priority}">${priorityMap[t.priority]}</span>
+                        <span class="due-date-tag ${tagClass}">🗓️ ${text}</span>
+                    </div>
+                </div>`;
+                return asString ? html : App.utils.stringToEl(html);
+            },
+            
+            habitCard(h, asString = false) {
+                const count = h.completedDays.length;
+                let daysHtml = '';
+                for (let i = 0; i < 7; i++) {
+                    let dayState = 'pending';
+                    let dayContent = `<span class="day-name">${App.utils.getDayName(i)}</span>`;
+                    let ariaLabel = `${App.utils.getDayName(i)}: غير مسجل`;
+                    if (h.completedDays.includes(i)) {
+                        dayState = 'completed';
+                        ariaLabel = `${App.utils.getDayName(i)}: مكتمل`;
+                    } else if (h.failedDays.includes(i)) {
+                        dayState = 'failed';
+                        dayContent = '×';
+                        ariaLabel = `${App.utils.getDayName(i)}: لم تنجز`;
+                    }
+                    daysHtml += `<div class="day-box ${dayState}" data-id="${h.id}" data-day="${i}" role="button" aria-label="${ariaLabel}">
+                                    ${dayContent}
+                                 </div>`;
+                }
+                const html = `
+                <div class="card habit-card" data-id="${h.id}">
+                    <div style="position:absolute;top:10px;left:10px; display: flex; gap: 5px;">
+                        <button class="btn-icon btn-edit btn-edit-habit" data-id="${h.id}" aria-label="تعديل العادة">✏️</button>
+                        <button class="btn-icon btn-delete-habit" data-id="${h.id}" aria-label="حذف العادة">❌</button>
+                    </div>
+                    <h3 class="editable-name">${App.utils.escapeHTML(h.name)}</h3>
+                    <div class="days-tracker">${daysHtml}</div>
+                    <small class="habit-streak" style="margin-top:15px; display: block; font-size: 1em;">الإنجاز: ${count}/7</small>
+                    <div class="progress-bar"><div style="width:${(count / 7 * 100)}%"></div></div>
+                </div>`;
+                return asString ? html : App.utils.stringToEl(html);
+            }
+        },
+
+        // --- 7. UTILITY METHODS ---
+        
+        utils: {
+            cacheDOM() {
+                App.domCache = {
+                    goalsContainer: App.utils.qs('#financialGoalsContainer'),
+                    budgetTrackerContainer: App.utils.qs('#budgetTrackerContainer'),
+                    sinkingFundsContainer: App.utils.qs('#sinkingFundsContainer'),
+                    ridesHistoryContainer: App.utils.qs('#ridesHistoryContainer'),
+                    generalExpensesHistoryContainer: App.utils.qs('#generalExpensesHistoryContainer'),
+                    projectsContainer: App.utils.qs('#projectsContainer'),
+                    habitsContainer: App.utils.qs('#habitsContainer'),
+                    uberArchiveList: App.utils.qs('#uberArchiveList'),
+                    goalName: App.utils.qs('#goalName'),
+                    goalAmount: App.utils.qs('#goalAmount'),
+                    currentSavings: App.utils.qs('#currentSavings'),
+                    goalDueDate: App.utils.qs('#goalDueDate'),
+                    addGoalBtn: App.utils.qs('#addGoalBtn'),
+                    totalExpectedIncomeDisplay: App.utils.qs('#totalExpectedIncomeDisplay'),
+                    totalReceivedIncomeDisplay: App.utils.qs('#totalReceivedIncomeDisplay'),
+                    totalAllocatedDisplay: App.utils.qs('#totalAllocatedDisplay'),
+                    unallocatedAmountDisplay: App.utils.qs('#unallocatedAmountDisplay'),
+                    incomeReceivedContainer: App.utils.qs('#incomeReceivedContainer'),
+                    oneTimeIncomeName: App.utils.qs('#oneTimeIncomeName'),
+                    oneTimeIncomeAmount: App.utils.qs('#oneTimeIncomeAmount'),
+                    addOneTimeIncomeBtn: App.utils.qs('#addOneTimeIncomeBtn'),
+                    newCategoryName: App.utils.qs('#newCategoryName'),
+                    addCategoryBtn: App.utils.qs('#addCategoryBtn'),
+                    incomeSourcesContainer: App.utils.qs('#incomeSourcesContainer'),
+                    newIncomeSource: App.utils.qs('#newIncomeSource'),
+                    newIncomeAmount: App.utils.qs('#newIncomeAmount'),
+                    addIncomeSourceBtn: App.utils.qs('#addIncomeSourceBtn'),
+                    daysUntilSalaryDisplay: App.utils.qs('#daysUntilSalaryDisplay'),
+                    salaryDayLabel: App.utils.qs('#salaryDayLabel'),
+                    fundName: App.utils.qs('#fundName'),
+                    fundTarget: App.utils.qs('#fundTarget'),
+                    fundDueDate: App.utils.qs('#fundDueDate'),
+                    addFundBtn: App.utils.qs('#addFundBtn'),
+                    rideIncome: App.utils.qs('#rideIncome'),
+                    rideExpense: App.utils.qs('#rideExpense'),
+                    addRideBtn: App.utils.qs('#addRideBtn'),
+                    generalExpenseAmount: App.utils.qs('#generalExpenseAmount'),
+                    generalExpenseName: App.utils.qs('#generalExpenseName'),
+                    addGeneralExpenseBtn: App.utils.qs('#addGeneralExpenseBtn'),
+                    endUberDayBtn: App.utils.qs('#endUberDayBtn'),
+                    projectName: App.utils.qs('#projectName'),
+                    addProjectBtn: App.utils.qs('#addProjectBtn'),
+                    taskProjectSelect: App.utils.qs('#taskProjectSelect'),
+                    taskName: App.utils.qs('#taskName'),
+                    taskDueDate: App.utils.qs('#taskDueDate'),
+                    taskPriority: App.utils.qs('#taskPriority'),
+                    addTaskBtn: App.utils.qs('#addTaskBtn'),
+                    habitName: App.utils.qs('#habitName'),
+                    addHabitBtn: App.utils.qs('#addHabitBtn'),
+                    configUberGoal: App.utils.qs('#configUberGoal'),
+                    configUberCommission: App.utils.qs('#configUberCommission'),
+                    saveUberConfigBtn: App.utils.qs('#saveUberConfigBtn'),
+                    configSalaryDay: App.utils.qs('#configSalaryDay'),
+                    saveSalaryConfigBtn: App.utils.qs('#saveSalaryConfigBtn'),
+                    exportDataBtn: App.utils.qs('#exportDataBtn'),
+                    importDataBtn: App.utils.qs('#importDataBtn'),
+                    importFile: App.utils.qs('#importFile'),
+                    clearAllDataBtn: App.utils.qs('#clearAllDataBtn'),
+                    clearArchiveBtn: App.utils.qs('#clearArchiveBtn'),
+                    uberTitle: App.utils.qs('#uberTitle'),
+                    uberNetProfit: App.utils.qs('#uberNetProfit'),
+                    uberRemaining: App.utils.qs('#uberRemaining'),
+                    uberGrossNeeded: App.utils.qs('#uberGrossNeeded'),
+                    tasksChartPercent: App.utils.qs('#tasksChartPercent'),
+                    tasksChartLabel: App.utils.qs('#tasksChartLabel'),
+                    habitsChartPercent: App.utils.qs('#habitsChartPercent'),
+                    habitsChartLabel: App.utils.qs('#habitsChartLabel'),
+                    financialChartPercent: App.utils.qs('#financialChartPercent'),
+                    financialChartLabel: App.utils.qs('#financialChartLabel'),
+                    archiveModal: App.utils.qs('#archiveModal'),
+                    modalTitle: App.utils.qs('#modalTitle'),
+                    modalBody: App.utils.qs('#modalBody'),
+                    modalCloseBtn: App.utils.qs('#modalCloseBtn'),
+                };
+            },
+            qs(selector) { return document.querySelector(selector); },
+            show(msg, type = 'success') {
+                const n = document.getElementById('notification');
+                n.textContent = msg;
+                n.className = type;
+                n.style.display = 'block';
+                setTimeout(() => n.style.display = 'none', 3000);
+            },
+            showError(btn, msg) {
+                this.show(msg, 'error');
+                if (btn) btn.disabled = false;
+            },
+            fmt(n) { return `${(n || 0).toLocaleString('ar-SA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ريال`; },
+            getToday() { 
+                const d = new Date(); 
+                return d.getFullYear() + '-' + (d.getMonth() + 1).toString().padStart(2, '0') + '-' + d.getDate().toString().padStart(2, '0');
+            },
+            getDayName(i) { 
+                const names = ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'];
+                return names[i]; 
+            },
+            getDaysRemaining(dueDateStr) {
+                if (!dueDateStr) return { text: '', isOverdue: false };
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); 
+                const parts = dueDateStr.split('-');
+                const due = new Date(parts[0], parts[1] - 1, parts[2]);
+                due.setHours(0, 0, 0, 0);
+                const diff = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                if (diff === 0) return { text: 'اليوم', isOverdue: false };
+                if (diff < 0) return { text: `متأخر ${Math.abs(diff)} يوم`, isOverdue: true };
+                return { text: `${diff} يوم`, isOverdue: false };
+            },
+            getWeekStart(d) {
+                const date = new Date(d);
+                const day = date.getDay();
+                const diff = date.getDate() - day;
+                return new Date(date.setDate(diff));
+            },
+            escapeHTML(str) {
+                if (typeof str !== 'string') return '';
+                const p = document.createElement('p');
+                p.textContent = str;
+                return p.innerHTML;
+            },
+            safeParse(jsonString) {
+                try {
+                    return JSON.parse(jsonString);
+                } catch (e) {
+                    return null;
+                }
+            },
+            stringToEl(htmlString) {
+                const div = document.createElement('div');
+                div.innerHTML = htmlString.trim();
+                return div.firstChild;
+            },
+            sortTasks(tasks) {
+                const priorityOrder = { high: 1, medium: 2, low: 3 };
+                return tasks.sort((a, b) => {
+                    if (a.completed !== b.completed) {
+                        return a.completed ? 1 : -1;
+                    }
+                    if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
+                        return priorityOrder[a.priority] - priorityOrder[b.priority];
+                    }
+                    return new Date(a.dueDate) - new Date(b.dueDate);
+                });
+            },
+            createDonutChart(canvasId, percent, color) {
+                const ctxEl = document.getElementById(canvasId);
+                if (!ctxEl) return;
+                const ctx = ctxEl.getContext('2d');
+                const remaining = 100 - percent;
+                if (App.charts[canvasId]) {
+                    App.charts[canvasId].destroy();
+                }
+                App.charts[canvasId] = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [percent, remaining > 0 ? remaining : 0.001],
+                            backgroundColor: [color, '#e9ecef'],
+                            borderWidth: 0,
+                            borderRadius: 5,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '75%',
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false }
+                        },
+                        animation: {
+                            duration: 1000
+                        }
+                    }
+                });
+            },
+            createPieChart(canvasId, labels, data, colors) {
+                const ctxEl = document.getElementById(canvasId);
+                if (!ctxEl) return;
+                const ctx = ctxEl.getContext('2d');
+                if (App.charts[canvasId]) {
+                    App.charts[canvasId].destroy();
+                }
+                App.charts[canvasId] = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: colors,
+                            borderWidth: 0,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        let value = context.raw || 0;
+                                        return `${label}: ${App.utils.fmt(value)}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    };
+    
+    // Run the app
+    App.init();
+
+});
+</script>
+</body>
+</html>
