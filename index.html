@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم حياتي | v10.1 (إصلاح)</title>
+    <title>لوحة تحكم حياتي | v12.0 (تاريخ العادات)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
@@ -44,7 +44,7 @@
         
         .tabs {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
             gap: 10px;
             margin-bottom: 25px;
         }
@@ -303,6 +303,20 @@
         .sinking-fund-card {
             border-right: 5px solid var(--secondary-color);
         }
+        
+        .debt-card {
+            border-right: 5px solid var(--danger-color);
+            transition: all 0.3s;
+        }
+        .debt-card.focus {
+            border-right-width: 10px;
+            border-right-color: var(--secondary-color);
+            box-shadow: 0 8px 25px rgba(0, 230, 118, 0.3);
+            transform: translateY(-2px);
+        }
+        .debt-card .progress-bar div {
+            background: linear-gradient(90deg, var(--primary-color), var(--danger-color));
+        }
 
         .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
         .modal-content { background-color: #fff; margin: auto; padding: 25px; border-radius: var(--radius); max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
@@ -340,6 +354,7 @@
             <button id="tab-financial" data-target="#financial" class="tab-link active" role="tab" aria-selected="true" aria-controls="financial"><span class="icon">💰</span>المالية</button>
             <button id="tab-salary" data-target="#salary-planner" class="tab-link" role="tab" aria-selected="false" aria-controls="salary-planner"><span class="icon">💸</span>الراتب</button>
             <button id="tab-sinking" data-target="#sinking-funds" class="tab-link" role="tab" aria-selected="false" aria-controls="sinking-funds"><span class="icon">🛡️</span>الصناديق</button>
+            <button id="tab-debts" data-target="#debts" class="tab-link" role="tab" aria-selected="false" aria-controls="debts"><span class="icon">💳</span>الديون</button>
             <button id="tab-tasks" data-target="#tasks" class="tab-link" role="tab" aria-selected="false" aria-controls="tasks"><span class="icon">✅</span>المهام</button>
             <button id="tab-habits" data-target="#habits" class="tab-link" role="tab" aria-selected="false" aria-controls="habits"><span class="icon">🧘</span>العادات</button>
             <button id="tab-uber" data-target="#uber-tracker" class="tab-link" role="tab" aria-selected="false" aria-controls="uber-tracker"><span class="icon">🚕</span>أوبر</button>
@@ -432,6 +447,23 @@
                 <button class="btn btn-primary" id="addFundBtn">إضافة صندوق</button>
             </div>
             <div class="grid-2" id="sinkingFundsContainer"></div>
+        </section>
+        
+        <section id="debts" class="content-section" role="tabpanel" aria-labelledby="tab-debts" aria-hidden="true">
+            <h2>متتبع الديون 💳</h2>
+            <div class="card">
+                <h3>إضافة دين جديد</h3>
+                <label for="debtName">اسم الدين</label>
+                <input type="text" id="debtName" placeholder="مثال: بطاقة فيزا، قرض شخصي">
+                <label for="debtAmount">المبلغ الإجمالي المتبقي</label>
+                <input type="number" id="debtAmount" placeholder="المبلغ المتبقي" min="1">
+                <label for="debtInterest">نسبة الفائدة (APR) %</label>
+                <input type="number" id="debtInterest" placeholder="مثال: 18.9" min="0">
+                <label for="debtMinPayment">أقل دفعة شهرية (القسط)</label>
+                <input type="number" id="debtMinPayment" placeholder="القسط الشهري" min="1">
+                <button class="btn btn-primary" id="addDebtBtn">إضافة دين</button>
+            </div>
+            <div class="grid-2" id="debtsContainer"></div>
         </section>
 
         <section id="uber-tracker" class="content-section" role="tabpanel" aria-labelledby="tab-uber" aria-hidden="true">
@@ -564,7 +596,14 @@
                 <h3>إعدادات الراتب</h3>
                 <label for="configSalaryDay">يوم بداية الشهر المالي (يوم نزول الراتب الأساسي)</label>
                 <input type="number" id="configSalaryDay" min="1" max="31">
-                <button class="btn btn-primary" id="saveSalaryConfigBtn">حفظ يوم الراتب</button>
+                
+                <label for="debtStrategy" style="margin-top: 15px;">استراتيجية سداد الديون</label>
+                <select id="debtStrategy">
+                    <option value="snowball">كرة الثلج ❄️ (التركيز على الدين الأصغر)</option>
+                    <option value="avalanche">الانهيار 🔥 (التركيز على الفائدة الأعلى)</option>
+                </select>
+                
+                <button class="btn btn-primary" id="saveSalaryConfigBtn">حفظ إعدادات الراتب</button>
             </div>
 
             <div class="card">
@@ -597,89 +636,36 @@
 
 <script>
 // =================================================================
-// Life Dashboard v10.1 (Hotfix)
-// ✅ إصلاح البق اللي يخلي زر "الإضافة" يعلق
-// ✨ إضافة زر التعديل (✏️) لكل العناصر
-// 🛡️ إضافة صناديق الادخار
-// 🚀 إضافة أولوية المهام
-// 📊 إضافة رسم توزيع المصروفات
+// Life Dashboard v12.0
+// ✨ إضافة تتبع تاريخي (إجمالي) للعادات
 // =================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
     
     // #region --- Type Definitions ---
-    /**
-     * @typedef {Object} Goal
-     * @property {string} id
-     * @property {string} name
-     * @property {number} target
-     * @property {number} current
-     * @property {string} dueDate
-     */
+    /** @typedef {Object} Goal */
+    /** @typedef {Object} Task */
+    /** @typedef {Object} Project */
     
     /**
-     * @typedef {Object} Task
-     * @property {string} id
-     * @property {string} name
-     * @property {string} dueDate
-     * @property {string} priority ('high', 'medium', 'low')
-     * @property {boolean} completed
-     */
-    
-    /**
-     * @typedef {Object} Project
-     * @property {string} id
-     * @property {string} name
-     * @property {Task[]} tasks
-     */
-
-    /**
-     * @typedef {Object} Habit
+     * @typedef {Object} Habit (تم التحديث)
      * @property {string} id
      * @property {string} name
      * @property {number[]} completedDays
      * @property {number[]} failedDays
      * @property {number} lastWeekStart
+     * @property {number} totalCompletedCount (جديد)
+     * @property {number} totalFailedCount (جديد)
+     * @property {string} startDate (جديد)
      */
     
-    /**
-     * @typedef {Object} SinkingFund
-     * @property {string} id
-     * @property {string} name
-     * @property {number} target
-     * @property {number} current
-     * @property {string} dueDate
-     * @property {number} monthlyAmount
-     * @property {string} linkedCategoryId
-     */
-
-    /**
-     * @typedef {Object} BudgetCategory
-     * @property {string} id
-     * @property {string} name
-     * @property {number} monthlyBudget
-     * @property {number} currentSpent
-     * @property {boolean} isSinkingFund
-     */
-
+    /** @typedef {Object} SinkingFund */
+    /** @typedef {Object} BudgetCategory */
     /** @typedef {Object} SalaryReset */
     /** @typedef {Object} OneTimeIncome */
-    
-    /**
-     * @typedef {Object} SalaryData
-     * @property {BudgetCategory[]} categories
-     * @property {SalaryReset} lastReset
-     * @property {string[]} expectedIncomeIds
-     * @property {OneTimeIncome[]} oneTimeIncomes
-     */
-
-    /**
-     * @typedef {Object} IncomeSource
-     * @property {string} id
-     * @property {string} name
-     * @property {number} amount
-     */
-     
+    /** @typedef {Object} Debt */
+    /** @typedef {Object} SalaryData */
+    /** @typedef {Object} IncomeSource */
     /** @typedef {Object} UberRide */
     /** @typedef {Object} UberExpense */
     /** @typedef {Object} UberDay */
@@ -688,8 +674,9 @@ document.addEventListener('DOMContentLoaded', () => {
      * @typedef {Object} AppState
      * @property {Goal[]} goals
      * @property {Project[]} projects
-     * @property {Habit[]} habits
+     * @property {Habit[]} habits (تم تحديث هيكلها)
      * @property {SinkingFund[]} sinkingFunds
+     * @property {Debt[]} debts
      * @property {SalaryData} salary
      * @property {IncomeSource[]} incomeTemplates
      * @property {{ today: UberDay, archive: UberDay[] }} uber
@@ -708,6 +695,7 @@ document.addEventListener('DOMContentLoaded', () => {
             projects: [],
             habits: [],
             sinkingFunds: [],
+            debts: [],
             salary: { 
                 categories: [], 
                 lastReset: { year: 2020, month: 0 },
@@ -725,7 +713,8 @@ document.addEventListener('DOMContentLoaded', () => {
         config: {
             uberGoal: 150,
             uberCommission: 0.35,
-            salaryStartDay: 27
+            salaryStartDay: 27,
+            debtStrategy: 'snowball'
         },
         
         domCache: {},
@@ -733,16 +722,14 @@ document.addEventListener('DOMContentLoaded', () => {
         saveTimeout: null,
         lastSelectedProjectId: null,
         
-        // --- Storage Keys ---
+        // --- Storage Keys (تم التحديث) ---
         OLD_KEYS: {
-            state_v9: 'dashboardState_v9',
-            config_v9: 'dashboardConfig_v9',
-            state_v8: 'dashboardState_v8', // (لضمان الترحيل)
-            config_v8: 'dashboardConfig_v8'
+            state_v11: 'dashboardState_v11',
+            config_v11: 'dashboardConfig_v11'
         },
         NEW_KEYS: {
-            state: 'dashboardState_v10', // نستخدم v10 لأن الهيكل لم يتغير
-            config: 'dashboardConfig_v10'
+            state: 'dashboardState_v12', // إصدار جديد
+            config: 'dashboardConfig_v12' // إصدار جديد
         },
         
         // --- 2. CORE METHODS (Init, Load, Save) ---
@@ -779,6 +766,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.state.uber = { ...this.state.uber, ...(parsedState.uber || {}) };
                     this.state.projects = parsedState.projects || [];
                     this.state.sinkingFunds = parsedState.sinkingFunds || [];
+                    this.state.debts = parsedState.debts || [];
                     this.state.salary.lastReset = parsedState.salary?.lastReset || { year: 2020, month: 0 };
                     this.state.salary.expectedIncomeIds = parsedState.salary?.expectedIncomeIds || [];
                     this.state.salary.oneTimeIncomes = parsedState.salary?.oneTimeIncomes || [];
@@ -800,39 +788,38 @@ document.addEventListener('DOMContentLoaded', () => {
             this.domCache.configUberGoal.value = this.config.uberGoal;
             this.domCache.configUberCommission.value = this.config.uberCommission;
             this.domCache.configSalaryDay.value = this.config.salaryStartDay;
+            this.domCache.debtStrategy.value = this.config.debtStrategy;
         },
         
         runMigrations() {
             if (localStorage.getItem(this.NEW_KEYS.state)) {
-                return; // Already on v10
+                return; // Already on v12
             }
             
-            // ترحيل من v9 (أو v8)
-            const old_state_str = localStorage.getItem(this.OLD_KEYS.state_v9) || localStorage.getItem(this.OLD_KEYS.state_v8);
-            const old_config_str = localStorage.getItem(this.OLD_KEYS.config_v9) || localStorage.getItem(this.OLD_KEYS.config_v8);
+            // ترحيل من v11
+            const old_v11_state_str = localStorage.getItem(this.OLD_KEYS.state_v11);
+            const old_v11_config_str = localStorage.getItem(this.OLD_KEYS.config_v11);
             
-            if (old_state_str && old_config_str) {
-                const oldState = JSON.parse(old_state_str);
-                const oldConfig = JSON.parse(old_config_str);
-
-                // إضافة مصفوفة صناديق الادخار
-                oldState.sinkingFunds = oldState.sinkingFunds || [];
+            if (old_v11_state_str && old_v11_config_str) {
+                const oldState = JSON.parse(old_v11_state_str);
+                const oldConfig = JSON.parse(old_v11_config_str);
                 
-                // إضافة الأولوية للمهام
-                oldState.projects = (oldState.projects || []).map(p => ({
-                    ...p,
-                    tasks: (p.tasks || []).map(t => ({ ...t, priority: t.priority || 'medium' }))
+                // إضافة تتبع العادات التاريخي
+                const today = new Date().toISOString().split('T')[0];
+                oldState.habits = (oldState.habits || []).map(h => ({
+                    ...h,
+                    totalCompletedCount: h.totalCompletedCount || 0,
+                    totalFailedCount: h.totalFailedCount || 0,
+                    startDate: h.startDate || today
                 }));
-                
+
                 localStorage.setItem(this.NEW_KEYS.state, JSON.stringify(oldState));
                 localStorage.setItem(this.NEW_KEYS.config, JSON.stringify(oldConfig));
                 
-                localStorage.removeItem(this.OLD_KEYS.state_v9);
-                localStorage.removeItem(this.OLD_KEYS.config_v9);
-                localStorage.removeItem(this.OLD_KEYS.state_v8);
-                localStorage.removeItem(this.OLD_KEYS.config_v8);
+                localStorage.removeItem(this.OLD_KEYS.state_v11);
+                localStorage.removeItem(this.OLD_KEYS.config_v11);
                 
-                this.utils.show('تم التحديث إلى الإصدار 10.0 Pro! 🎉', 'success');
+                this.utils.show('تم التحديث إلى الإصدار 12.0 (تتبع العادات التاريخي)!', 'success');
                 return;
             }
         },
@@ -848,26 +835,23 @@ document.addEventListener('DOMContentLoaded', () => {
             this.domCache.incomeReceivedContainer.addEventListener('click', e => this.handlers.handleIncomeToggle(e));
             this.domCache.addOneTimeIncomeBtn.addEventListener('click', e => this.handlers.addOneTimeIncome(e));
             this.domCache.saveSalaryConfigBtn.addEventListener('click', e => this.handlers.saveSalaryConfig(e));
-            // Sinking Funds
             this.domCache.addFundBtn.addEventListener('click', e => this.handlers.addSinkingFund(e));
             this.domCache.sinkingFundsContainer.addEventListener('click', e => this.handlers.handleFundClick(e));
-            // Uber
+            this.domCache.addDebtBtn.addEventListener('click', e => this.handlers.addDebt(e));
+            this.domCache.debtsContainer.addEventListener('click', e => this.handlers.handleDebtClick(e));
             this.domCache.addRideBtn.addEventListener('click', e => this.handlers.addUberRide(e));
             this.domCache.addGeneralExpenseBtn.addEventListener('click', e => this.handlers.addGeneralExpense(e));
             this.domCache.endUberDayBtn.addEventListener('click', e => this.handlers.endUberDay(e));
             this.domCache.ridesHistoryContainer.addEventListener('click', e => this.handlers.handleUberHistoryClick(e));
             this.domCache.generalExpensesHistoryContainer.addEventListener('click', e => this.handlers.handleUberHistoryClick(e));
-            // Tasks
             this.domCache.addProjectBtn.addEventListener('click', e => this.handlers.addProject(e));
             this.domCache.addTaskBtn.addEventListener('click', e => this.handlers.addTask(e));
             this.domCache.projectsContainer.addEventListener('click', e => this.handlers.handleProjectClick(e));
             this.domCache.taskProjectSelect.addEventListener('change', e => {
                 this.lastSelectedProjectId = e.target.value;
             });
-            // Habits
             this.domCache.addHabitBtn.addEventListener('click', e => this.handlers.addHabit(e));
             this.domCache.habitsContainer.addEventListener('click', e => this.handlers.handleHabitClick(e));
-            // Stats
             this.domCache.clearArchiveBtn.addEventListener('click', e => this.handlers.clearUberArchive(e));
             this.domCache.uberArchiveList.addEventListener('click', e => this.handlers.showArchiveDetail(e));
             this.domCache.modalCloseBtn.addEventListener('click', () => this.domCache.archiveModal.style.display = 'none');
@@ -876,7 +860,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.domCache.archiveModal.style.display = 'none';
                 }
             });
-            // Settings
             this.domCache.saveUberConfigBtn.addEventListener('click', e => this.handlers.saveUberConfig(e));
             this.domCache.exportDataBtn.addEventListener('click', () => this.handlers.exportData());
             this.domCache.importDataBtn.addEventListener('click', () => this.domCache.importFile.click());
@@ -891,6 +874,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.renderGoals();
             this.renderSalary();
             this.renderSinkingFunds();
+            this.renderDebts();
             this.renderUber();
             this.renderProjectsAndTasks();
             this.renderHabits();
@@ -912,7 +896,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderSalary() {
             const { categories, expectedIncomeIds, oneTimeIncomes } = this.state.salary;
 
-            // --- 0. حساب العد التنازلي للراتب ---
+            // 0. حساب العد التنازلي للراتب
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const salaryDay = App.config.salaryStartDay;
@@ -942,11 +926,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             this.domCache.totalExpectedIncomeDisplay.textContent = this.utils.fmt(totalExpectedIncome);
 
-            // 2. حساب الدخل المستلم (فقط الدخل لمرة واحدة)
-            // ******** إزالة السطر المسبب للمشكلة ********
-            // const totalReceivedIncome = oneTimeIncomes.reduce((acc, src) => acc + src.amount, 0);
-            // this.domCache.totalReceivedIncomeDisplay.textContent = this.utils.fmt(totalReceivedIncome);
-            // ***************************************
+            // 2. (تمت إزالة حساب الدخل المستلم من هنا)
 
             // 3. حساب المجموع المخصص
             const totalAllocated = categories.reduce((acc, cat) => acc + cat.monthlyBudget, 0);
@@ -998,6 +978,21 @@ document.addEventListener('DOMContentLoaded', () => {
             let html = '';
             this.state.sinkingFunds.forEach(f => {
                 html += this.builders.sinkingFundCard(f, true);
+            });
+            container.innerHTML = html;
+        },
+        
+        renderDebts() {
+            const container = this.domCache.debtsContainer;
+            if (this.state.debts.length === 0) {
+                container.innerHTML = `<div class="empty-state">لا توجد ديون مسجلة. الحمد لله!</div>`;
+                return;
+            }
+            const sortedDebts = App.utils.sortDebts(this.state.debts);
+            let html = '';
+            sortedDebts.forEach((d, index) => {
+                const isFocus = index === 0;
+                html += this.builders.debtCard(d, isFocus, true);
             });
             container.innerHTML = html;
         },
@@ -1093,7 +1088,13 @@ document.addEventListener('DOMContentLoaded', () => {
             this.state.habits.forEach(h => {
                 h.completedDays = h.completedDays || [];
                 h.failedDays = h.failedDays || [];
+                
                 if (h.lastWeekStart < weekStart) {
+                    // --- المنطق الجديد (حفظ الإنجاز قبل التصفير) ---
+                    h.totalCompletedCount = (h.totalCompletedCount || 0) + h.completedDays.length;
+                    h.totalFailedCount = (h.totalFailedCount || 0) + h.failedDays.length;
+                    // --- نهاية المنطق الجديد ---
+                    
                     h.completedDays = [];
                     h.failedDays = [];
                     h.lastWeekStart = weekStart;
@@ -1115,6 +1116,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 h.completedDays = h.completedDays || [];
                 h.failedDays = h.failedDays || [];
                 if (h.lastWeekStart < weekStart) {
+                    // --- المنطق الجديد (حفظ الإنجاز قبل التصفير) ---
+                    // (يجب أن يتم الحفظ هنا أيضاً لضمان دقة الإحصائيات إذا فُتح التاب يوم الأحد)
+                    h.totalCompletedCount = (h.totalCompletedCount || 0) + h.completedDays.length;
+                    h.totalFailedCount = (h.totalFailedCount || 0) + h.failedDays.length;
                     h.completedDays = [];
                     h.failedDays = [];
                     h.lastWeekStart = weekStart;
@@ -1151,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         
         renderExpensesChart() {
-            const categories = this.state.salary.categories.filter(c => !c.isSinkingFund);
+            const categories = this.state.salary.categories.filter(c => !c.isSinkingFund && !c.isDebtPayment);
             const totalSpent = categories.reduce((acc, c) => acc + c.currentSpent, 0);
 
             if (categories.length === 0 || totalSpent === 0) {
@@ -1231,9 +1236,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
                 
+                this.utils.updateDebtCategory();
+                
                 this.debouncedSave();
                 this.utils.show('تم تصفير الميزانية لبداية الشهر المالي الجديد!', 'success');
             }
+            
+            this.utils.updateDebtCategory();
         },
 
         // --- 5. EVENT HANDLERS (Controllers) ---
@@ -1453,7 +1462,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const name = nameInput.value.trim();
                 if (!name) return App.utils.showError(btn, 'أدخل اسم للفئة');
                 if (App.state.salary.categories.find(c => c.name === name)) return App.utils.showError(btn, 'هذه الفئة موجودة مسبقاً.');
-                const newCategory = { id: Date.now() + '', name, monthlyBudget: 0, currentSpent: 0, isSinkingFund: false };
+                const newCategory = { id: Date.now() + '', name, monthlyBudget: 0, currentSpent: 0, isSinkingFund: false, isDebtPayment: false };
                 App.state.salary.categories.push(newCategory);
                 App.debouncedSave();
                 if (App.state.salary.categories.length === 1) {
@@ -1476,7 +1485,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!category) return;
                 
                 if (e.target.matches('.btn-edit-category')) {
-                    if(category.isSinkingFund) return App.utils.showError(null, 'لا يمكن تعديل اسم فئة مرتبطة بصندوق. عدل الصندوق نفسه.');
+                    if(category.isSinkingFund || category.isDebtPayment) return App.utils.showError(null, 'لا يمكن تعديل اسم فئة تلقائية. عدل المصدر (الصندوق أو الدين).');
                     const newName = prompt('تعديل اسم الفئة:', category.name);
                     if (newName && newName.trim()) {
                         if (App.state.salary.categories.find(c => c.name === newName.trim() && c.id !== id)) {
@@ -1499,7 +1508,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     App.utils.show(`تم تسجيل ${App.utils.fmt(amount)}`, 'success');
                 }
                 if (e.target.matches('.budget-input')) {
-                    if(category.isSinkingFund) return;
+                    if(category.isSinkingFund || category.isDebtPayment) return;
                     e.target.addEventListener('change', () => {
                         const budget = +e.target.value;
                         const validBudget = (Number.isFinite(budget) && budget >= 0) ? budget : 0;
@@ -1509,7 +1518,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
                 if (e.target.matches('.btn-delete-category')) {
-                    if(category.isSinkingFund) return App.utils.showError(null, 'لا يمكن حذف فئة مرتبطة بصندوق. احذف الصندوق أولاً.');
+                    if(category.isSinkingFund || category.isDebtPayment) return App.utils.showError(null, 'لا يمكن حذف فئة تلقائية. احذف المصدر (الصندوق أو الدين).');
                     if (confirm(`حذف فئة "${category.name}"؟`)) {
                         App.state.salary.categories = App.state.salary.categories.filter(c => c.id !== id);
                         App.debouncedSave();
@@ -1522,12 +1531,15 @@ document.addEventListener('DOMContentLoaded', () => {
             saveSalaryConfig(e) {
                 const btn = e.target; btn.disabled = true;
                 const day = +App.domCache.configSalaryDay.value;
+                const strategy = App.domCache.debtStrategy.value;
                 if (!Number.isFinite(day) || day < 1 || day > 31) return App.utils.showError(btn, 'أدخل يوم صحيح في الشهر (بين 1 و 31).');
                 App.config.salaryStartDay = day;
+                App.config.debtStrategy = strategy;
                 App.saveConfig();
                 App.initSalaryMonth(); 
                 App.renderSalary();
-                App.utils.show('تم حفظ يوم الراتب', 'success');
+                App.renderDebts();
+                App.utils.show('تم حفظ إعدادات الراتب', 'success');
                 btn.disabled = false;
             },
 
@@ -1536,28 +1548,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 const name = App.domCache.fundName.value.trim();
                 const target = +App.domCache.fundTarget.value;
                 const dueDate = App.domCache.fundDueDate.value;
-                
                 if (!name) return App.utils.showError(btn, 'أدخل اسم الصندوق');
                 if (App.state.sinkingFunds.find(f => f.name === name)) return App.utils.showError(btn, 'هذا الصندوق موجود مسبقاً.');
+                if (App.state.salary.categories.find(c => c.name === `🛡️ ${name}`)) return App.utils.showError(btn, 'هذا الاسم مستخدم مسبقاً في فئات الميزانية.');
                 if (!Number.isFinite(target) || target <= 0) return App.utils.showError(btn, 'أدخل مبلغ صحيح.');
                 if (!dueDate) return App.utils.showError(btn, 'أدخل تاريخ مستهدف.');
-                
                 const today = new Date();
                 const due = new Date(dueDate);
                 if (due <= today) return App.utils.showError(btn, 'التاريخ المستهدف يجب أن يكون في المستقبل.');
-                
                 const monthsDiff = Math.max(1, Math.round((due - today) / (1000 * 60 * 60 * 24 * 30.44)));
                 const monthlyAmount = Math.ceil(target / monthsDiff);
-                
                 const newCategory = {
                     id: Date.now() + '_cat',
                     name: `🛡️ ${name}`,
                     monthlyBudget: monthlyAmount,
                     currentSpent: 0,
-                    isSinkingFund: true
+                    isSinkingFund: true,
+                    isDebtPayment: false
                 };
                 App.state.salary.categories.push(newCategory);
-                
                 const newFund = {
                     id: Date.now() + '',
                     name,
@@ -1568,15 +1577,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     linkedCategoryId: newCategory.id
                 };
                 App.state.sinkingFunds.push(newFund);
-                
                 App.debouncedSave();
                 App.renderSinkingFunds();
                 App.renderSalary();
-                
                 App.domCache.fundName.value = '';
                 App.domCache.fundTarget.value = '';
                 App.domCache.fundDueDate.value = '';
-                
                 App.utils.show(`تم إنشاء صندوق! احفظ ${App.utils.fmt(monthlyAmount)} شهرياً`, 'success');
                 btn.disabled = false;
             },
@@ -1585,7 +1591,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const card = e.target.closest('.sinking-fund-card');
                 if (!card) return;
                 const id = card.dataset.id;
-                
                 if (e.target.matches('.btn-edit-fund')) {
                     const fund = App.state.sinkingFunds.find(f => f.id === id);
                     if (fund) {
@@ -1603,7 +1608,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                 }
-
                 if (e.target.matches('.btn-delete-fund')) {
                     if (confirm('حذف الصندوق والفئة المرتبطة به؟')) {
                         const fund = App.state.sinkingFunds.find(f => f.id === id);
@@ -1617,18 +1621,97 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                 }
-
                 if (e.target.matches('.btn-add-to-fund')) {
                     const amountInput = card.querySelector('.fund-add-input');
                     const amount = +amountInput.value;
                     if (!Number.isFinite(amount) || amount <= 0) return App.utils.showError(null, 'أدخل مبلغ صحيح.');
-                    
                     const fund = App.state.sinkingFunds.find(f => f.id === id);
                     if (fund) {
                         fund.current = Math.min(fund.target, fund.current + amount);
                         App.debouncedSave();
                         App.renderSinkingFunds();
                         App.utils.show('تم إضافة المبلغ للصندوق ✅', 'success');
+                    }
+                }
+            },
+            
+            addDebt(e) {
+                const btn = e.target; btn.disabled = true;
+                const name = App.domCache.debtName.value.trim();
+                const amount = +App.domCache.debtAmount.value;
+                const interest = +App.domCache.debtInterest.value || 0;
+                const minPayment = +App.domCache.debtMinPayment.value;
+                if (!name) return App.utils.showError(btn, 'أدخل اسم الدين.');
+                if (App.state.debts.find(d => d.name === name)) return App.utils.showError(btn, 'هذا الدين موجود مسبقاً.');
+                if (!Number.isFinite(amount) || amount <= 0) return App.utils.showError(btn, 'أدخل المبلغ الإجمالي الصحيح.');
+                if (!Number.isFinite(interest) || interest < 0) return App.utils.showError(btn, 'أدخل نسبة فائدة صحيحة (أو 0).');
+                if (!Number.isFinite(minPayment) || minPayment <= 0) return App.utils.showError(btn, 'أدخل أقل دفعة شهرية صحيحة.');
+                const newDebt = {
+                    id: Date.now() + '',
+                    name,
+                    totalAmount: amount,
+                    remainingAmount: amount,
+                    interestRate: interest,
+                    minPayment: minPayment
+                };
+                App.state.debts.push(newDebt);
+                App.debouncedSave();
+                App.utils.updateDebtCategory();
+                App.renderDebts();
+                App.renderSalary();
+                App.domCache.debtName.value = '';
+                App.domCache.debtAmount.value = '';
+                App.domCache.debtInterest.value = '';
+                App.domCache.debtMinPayment.value = '';
+                App.utils.show('تم إضافة الدين بنجاح', 'success');
+                btn.disabled = false;
+            },
+            
+            handleDebtClick(e) {
+                const card = e.target.closest('.debt-card');
+                if (!card) return;
+                const id = card.dataset.id;
+                
+                if (e.target.matches('.btn-edit-debt')) {
+                    const debt = App.state.debts.find(d => d.id === id);
+                    if (debt) {
+                        const newName = prompt('تعديل اسم الدين:', debt.name);
+                        if (newName && newName.trim()) {
+                            debt.name = newName.trim();
+                            App.debouncedSave();
+                            App.renderDebts();
+                            App.utils.show('تم تعديل الدين', 'success');
+                        }
+                    }
+                }
+                
+                if (e.target.matches('.btn-delete-debt')) {
+                    if (confirm('حذف الدين؟')) {
+                        App.state.debts = App.state.debts.filter(d => d.id !== id);
+                        App.debouncedSave();
+                        App.utils.updateDebtCategory();
+                        App.renderDebts();
+                        App.renderSalary();
+                        App.utils.show('تم حذف الدين', 'success');
+                    }
+                }
+                
+                if (e.target.matches('.btn-add-payment')) {
+                    const amountInput = card.querySelector('.debt-add-input');
+                    const amount = +amountInput.value;
+                    if (!Number.isFinite(amount) || amount <= 0) return App.utils.showError(null, 'أدخل مبلغ صحيح.');
+                    
+                    const debt = App.state.debts.find(d => d.id === id);
+                    if (debt) {
+                        debt.remainingAmount -= amount;
+                        if (debt.remainingAmount <= 0) {
+                            App.utils.show(`🎉 مبروك! لقد سددت دين "${debt.name}" بالكامل! 🎉`, 'success');
+                            App.state.debts = App.state.debts.filter(d => d.id !== id);
+                        }
+                        App.debouncedSave();
+                        App.utils.updateDebtCategory();
+                        App.renderDebts();
+                        App.renderSalary();
                     }
                 }
             },
@@ -1866,7 +1949,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     id: Date.now() + '', name,
                     completedDays: [],
                     failedDays: [],
-                    lastWeekStart: App.utils.getWeekStart(new Date()).getTime()
+                    lastWeekStart: App.utils.getWeekStart(new Date()).getTime(),
+                    totalCompletedCount: 0,
+                    totalFailedCount: 0,
+                    startDate: App.utils.getToday()
                 };
                 App.state.habits.push(newHabit);
                 App.debouncedSave();
@@ -1938,7 +2024,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         e.target.innerHTML = newContent;
                         e.target.setAttribute('aria-label', newAriaLabel);
                         const count = habit.completedDays.length;
-                        card.querySelector('.habit-streak').textContent = `الإنجاز: ${count}/7`;
+                        card.querySelector('.habit-streak').textContent = `الإنجاز الأسبوعي: ${count}/7`;
                         card.querySelector('.progress-bar div').style.width = `${(count / 7 * 100)}%`;
                     }
                 }
@@ -1975,7 +2061,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = { state: App.state, config: App.config };
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
-                a.download = `life_dashboard_backup_v10_${new Date().toLocaleDateString('en-CA')}.json`;
+                a.download = `life_dashboard_backup_v12_${new Date().toLocaleDateString('en-CA')}.json`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -2092,16 +2178,16 @@ document.addEventListener('DOMContentLoaded', () => {
             salaryTrackerCard(cat, asString = false) {
                 const remaining = cat.monthlyBudget - cat.currentSpent;
                 const html = `
-                <div class="card salary-tracker-card" data-id="${cat.id}" style="${cat.isSinkingFund ? 'border-right-color: var(--secondary-color);' : ''}">
+                <div class="card salary-tracker-card" data-id="${cat.id}" style="${cat.isSinkingFund ? 'border-right-color: var(--secondary-color);' : (cat.isDebtPayment ? 'border-right-color: var(--danger-color);' : '')}">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                         <h4 class="editable-name">${App.utils.escapeHTML(cat.name)}</h4>
                         <div>
-                            ${!cat.isSinkingFund ? `<button class="btn-icon btn-edit btn-edit-category" aria-label="تعديل الفئة">✏️</button>` : ''}
-                            ${!cat.isSinkingFund ? `<button class="btn-icon btn-delete-category" aria-label="حذف الفئة">❌</button>` : ''}
+                            ${!cat.isSinkingFund && !cat.isDebtPayment ? `<button class="btn-icon btn-edit btn-edit-category" aria-label="تعديل الفئة">✏️</button>` : ''}
+                            ${!cat.isSinkingFund && !cat.isDebtPayment ? `<button class="btn-icon btn-delete-category" aria-label="حذف الفئة">❌</button>` : ''}
                         </div>
                     </div>
                     <label>الميزانية المخصصة:</label>
-                    <input type="number" class="budget-input" value="${cat.monthlyBudget}" min="0" ${cat.isSinkingFund ? 'disabled' : ''}>
+                    <input type="number" class="budget-input" value="${cat.monthlyBudget}" min="0" ${cat.isSinkingFund || cat.isDebtPayment ? 'disabled' : ''}>
                     <hr style="margin:10px 0; border:none; border-top:1px solid #f0f0f0;">
                     <p class="salary-stat"><span class="label">المصروف:</span> <span class="value spent">${App.utils.fmt(cat.currentSpent)}</span></p>
                     <p class="salary-stat"><span class="label">المتبقي:</span> <span class="value remaining ${remaining < 0 ? 'over' : ''}">${App.utils.fmt(remaining)}</span></p>
@@ -2134,6 +2220,31 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button class="btn btn-primary btn-add-to-fund">إضافة</button>
                         <button class="btn btn-danger btn-delete-fund">حذف</button>
                     </div>
+                </div>`;
+                return asString ? html : App.utils.stringToEl(html);
+            },
+            
+            debtCard(d, isFocus, asString = false) {
+                const p = d.totalAmount > 0 ? (( (d.totalAmount - d.remainingAmount) / d.totalAmount) * 100) : 0;
+                const html = `
+                <div class="card debt-card ${isFocus ? 'focus' : ''}" data-id="${d.id}">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <h3 class="editable-name">${isFocus ? '🎯 ' : ''} ${App.utils.escapeHTML(d.name)}</h3>
+                        <button class="btn-icon btn-edit btn-edit-debt" aria-label="تعديل الدين">✏️</button>
+                    </div>
+                    <p>المبلغ المتبقي: <span class="value" style="color:var(--danger-color);">${App.utils.fmt(d.remainingAmount)}</span></p>
+                    <p style="color:var(--text-light); font-size: 0.9em;">الأصلي: ${App.utils.fmt(d.totalAmount)}</p>
+                    <div class="progress-bar"><div style="width:${Math.min(100, p)}%"></div></div>
+                    <p style="text-align:left; font-size: 0.9em; margin-top: 5px;">${p.toFixed(1)}% مكتمل</p>
+                    <hr style="margin:15px 0;border:none;border-top:1px solid #eee">
+                    <p class="salary-stat"><span class="label">نسبة الفائدة:</span> <span class="value">${d.interestRate}%</span></p>
+                    <p class="salary-stat"><span class="label">القسط الشهري:</span> <span class="value">${App.utils.fmt(d.minPayment)}</span></p>
+                    <hr style="margin:15px 0;border:none;border-top:1px solid #eee">
+                    <div class="btn-group">
+                         <input type="number" class="debt-add-input" placeholder="تسجيل دفعة" min="1" style="width: 60%; margin:0;">
+                        <button class="btn btn-primary btn-add-payment" style="width: 40%; margin:0;">سجل الدفعة</button>
+                    </div>
+                     <button class="btn btn-danger btn-delete-debt" style="width:100%; margin-top: 10px;">حذف الدين</button>
                 </div>`;
                 return asString ? html : App.utils.stringToEl(html);
             },
@@ -2240,8 +2351,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <h3 class="editable-name">${App.utils.escapeHTML(h.name)}</h3>
                     <div class="days-tracker">${daysHtml}</div>
-                    <small class="habit-streak" style="margin-top:15px; display: block; font-size: 1em;">الإنجاز: ${count}/7</small>
-                    <div class="progress-bar"><div style="width:${(count / 7 * 100)}%"></div></div>
+                    <small class="habit-streak" style="margin-top:15px; display: block; font-size: 1em;">الإنجاز الأسبوعي: ${count}/7</small>
+                    <small class="habit-total-streak" style="margin-top:5px; display: block; font-size: 1.1em; font-weight: bold; color: var(--primary-color);">
+                        الإنجاز الكلي: ${h.totalCompletedCount || 0} يوم
+                    </small>
+                    <small style="color:var(--text-light); font-size: 0.8em; display: block;">(بدأت في: ${h.startDate})</small>
+                    <div class="progress-bar" style="margin-top: 15px;"><div style="width:${(count / 7 * 100)}%"></div></div>
                 </div>`;
                 return asString ? html : App.utils.stringToEl(html);
             }
@@ -2255,6 +2370,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     goalsContainer: App.utils.qs('#financialGoalsContainer'),
                     budgetTrackerContainer: App.utils.qs('#budgetTrackerContainer'),
                     sinkingFundsContainer: App.utils.qs('#sinkingFundsContainer'),
+                    debtsContainer: App.utils.qs('#debtsContainer'),
                     ridesHistoryContainer: App.utils.qs('#ridesHistoryContainer'),
                     generalExpensesHistoryContainer: App.utils.qs('#generalExpensesHistoryContainer'),
                     projectsContainer: App.utils.qs('#projectsContainer'),
@@ -2285,6 +2401,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     fundTarget: App.utils.qs('#fundTarget'),
                     fundDueDate: App.utils.qs('#fundDueDate'),
                     addFundBtn: App.utils.qs('#addFundBtn'),
+                    debtName: App.utils.qs('#debtName'),
+                    debtAmount: App.utils.qs('#debtAmount'),
+                    debtInterest: App.utils.qs('#debtInterest'),
+                    debtMinPayment: App.utils.qs('#debtMinPayment'),
+                    addDebtBtn: App.utils.qs('#addDebtBtn'),
+                    debtStrategy: App.utils.qs('#debtStrategy'),
                     rideIncome: App.utils.qs('#rideIncome'),
                     rideExpense: App.utils.qs('#rideExpense'),
                     addRideBtn: App.utils.qs('#addRideBtn'),
@@ -2386,7 +2508,7 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             sortTasks(tasks) {
                 const priorityOrder = { high: 1, medium: 2, low: 3 };
-                return tasks.sort((a, b) => {
+                return [...tasks].sort((a, b) => {
                     if (a.completed !== b.completed) {
                         return a.completed ? 1 : -1;
                     }
@@ -2395,6 +2517,43 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     return new Date(a.dueDate) - new Date(b.dueDate);
                 });
+            },
+            sortDebts(debts) {
+                const strategy = App.config.debtStrategy;
+                return [...debts].sort((a, b) => {
+                    if (a.remainingAmount <= 0) return 1;
+                    if (b.remainingAmount <= 0) return -1;
+                    if (strategy === 'snowball') {
+                        return a.remainingAmount - b.remainingAmount;
+                    } else {
+                        return b.interestRate - a.interestRate;
+                    }
+                });
+            },
+            updateDebtCategory() {
+                const totalMinPayments = App.state.debts.reduce((acc, d) => acc + d.minPayment, 0);
+                const debtCategoryName = "💳 سداد الديون (الأقساط)";
+                let debtCategory = App.state.salary.categories.find(c => c.name === debtCategoryName);
+                
+                if (totalMinPayments > 0) {
+                    if (debtCategory) {
+                        debtCategory.monthlyBudget = totalMinPayments;
+                    } else {
+                        App.state.salary.categories.push({
+                            id: 'debt_category_' + Date.now(),
+                            name: debtCategoryName,
+                            monthlyBudget: totalMinPayments,
+                            currentSpent: 0,
+                            isSinkingFund: false,
+                            isDebtPayment: true
+                        });
+                    }
+                } else {
+                    if (debtCategory) {
+                        App.state.salary.categories = App.state.salary.categories.filter(c => c.name !== debtCategoryName);
+                    }
+                }
+                App.debouncedSave();
             },
             createDonutChart(canvasId, percent, color) {
                 const ctxEl = document.getElementById(canvasId);
